@@ -41,7 +41,7 @@ export function useMazeEscapeGame() {
   };
 
   const drawPlayer = () => {
-    ctx.fillStyle = "#007bff";
+    ctx.fillStyle = "#6C619E"; // Updated player color
     ctx.fillRect(player.x, player.y, player.size, player.size);
   };
 
@@ -51,7 +51,7 @@ export function useMazeEscapeGame() {
   };
 
   const drawMaze = () => {
-    ctx.fillStyle = "#333";
+    ctx.fillStyle = "#000000"; // Updated maze walls (distraction) color to black
     maze.forEach((wall) => {
       ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
     });
@@ -150,4 +150,3 @@ export function useMazeEscapeGame() {
     resetGame, // Expose resetGame
   };
 }
- 

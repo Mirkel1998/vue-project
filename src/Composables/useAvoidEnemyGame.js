@@ -34,12 +34,12 @@ export function useAvoidEnemyGame() {
   };
 
   const drawPlayer = () => {
-    ctx.fillStyle = "#007bff";
+    ctx.fillStyle = "#6C619E"; // Updated player color
     ctx.fillRect(player.x, player.y, player.size, player.size);
   };
 
   const drawEnemies = () => {
-    ctx.fillStyle = "#ff0000";
+    ctx.fillStyle = "#000000"; // Updated enemy color to black
     enemies.forEach((enemy) => {
       ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
     });

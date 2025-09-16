@@ -56,7 +56,7 @@ const {
   gameCardRef: spaceShooterGameCardRef,
   isGameRunning: isSpaceShooterRunning,
   startGame: startSpaceShooter,
-  resetGame: resetSpaceShooter, // Use resetGame instead of stopGame
+  resetGame: resetSpaceShooter,
 } = useSpaceShooterGame();
 
 const {
@@ -64,7 +64,7 @@ const {
   gameCardRef: mazeEscapeGameCardRef,
   isGameRunning: isMazeEscapeRunning,
   startGame: startMazeEscape,
-  resetGame: resetMazeEscape, // Use resetGame instead of stopGame
+  resetGame: resetMazeEscape,
 } = useMazeEscapeGame();
 
 const {
@@ -78,7 +78,7 @@ const {
 const {
   board,
   currentPlayer,
-  message: ticTacToeMessage, // Renamed to avoid conflict
+  message: ticTacToeMessage,
   makeMove,
   resetGame: resetTicTacToe,
 } = useTicTacToeGame();
@@ -88,7 +88,7 @@ const {
   gameCardRef: snakeGameCardRef,
   isGameRunning: isSnakeRunning,
   startGame: startSnake,
-  resetGame: resetSnake, // Use resetGame instead of stopGame
+  resetGame: resetSnake,
 } = useSnakeGame();
 </script>
 
@@ -200,7 +200,7 @@ const {
             {{ cell }}
           </div>
         </div>
-        <p>{{ ticTacToeMessage }}</p> <!-- Updated to use ticTacToeMessage -->
+        <p>{{ ticTacToeMessage }}</p>
         <button @click="resetTicTacToe">New Game</button>
       </div>
       <div class="game-card" ref="snakeGameCardRef">
@@ -236,21 +236,20 @@ h2 {
 .game-grid {
   display: flex;
   justify-content: center;
-  align-items: stretch; /* Ensure all cards stretch to the same height */
+  align-items: stretch;
   gap: 2rem;
   flex-wrap: wrap;
 }
 
 .game-card {
-  background-color: #f4f4f4;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  background-color: #C0C0C0;
+  border: 1px solid #aaa;
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   width: 400px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Distribute content evenly */
+  justify-content: space-between;
   align-items: center;
   gap: 1rem;
 }
@@ -266,7 +265,7 @@ button {
   margin: 0.5rem;
   padding: 0.5rem 1rem;
   font-size: 1rem;
-  background-color: #007bff;
+  background-color: #6C619E;
   color: white;
   border: none;
   border-radius: 4px;
@@ -275,7 +274,7 @@ button {
 }
 
 button:hover {
-  background-color: #0056b3;
+  background-color: #554d7a;
 }
 
 .quiz-question {
@@ -349,7 +348,7 @@ button:hover {
 }
 
 p {
-  color: #333; /* Ensure all paragraph text, including RGB Value, is #333 */
+  color: #333;
 }
 
 .tic-tac-toe-board {
@@ -366,7 +365,7 @@ p {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #f4f4f4;
+  background-color: #6C619E;
   border: 1px solid #333;
   font-size: 1.5rem;
   font-weight: bold;

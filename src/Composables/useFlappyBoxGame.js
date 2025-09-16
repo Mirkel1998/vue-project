@@ -34,12 +34,12 @@ export function useFlappyBoxGame() {
   };
 
   const drawBox = () => {
-    ctx.fillStyle = "#007bff";
+    ctx.fillStyle = "#6C619E"; // Updated box (player) color
     ctx.fillRect(box.x, box.y, box.size, box.size);
   };
 
   const drawPipes = () => {
-    ctx.fillStyle = "#ff0000";
+    ctx.fillStyle = "#000000"; // Updated pipe (distraction) color to black
     pipes.forEach((pipe) => {
       // Top pipe
       ctx.fillRect(pipe.x, 0, pipeWidth, pipe.y);
@@ -147,4 +147,4 @@ export function useFlappyBoxGame() {
     resetGame, // Expose the resetGame function
   };
 }
- 
+

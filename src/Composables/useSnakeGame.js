@@ -34,14 +34,14 @@ export function useSnakeGame() {
   };
 
   const drawSnake = () => {
-    ctx.fillStyle = "#007bff";
+    ctx.fillStyle = "#6C619E"; // Updated snake color to #6C619E
     snake.forEach((segment) => {
       ctx.fillRect(segment.x * cellSize, segment.y * cellSize, cellSize, cellSize);
     });
   };
 
   const drawFood = () => {
-    ctx.fillStyle = "#ff0000";
+    ctx.fillStyle = "#000000"; // Updated food color to black
     ctx.fillRect(food.x * cellSize, food.y * cellSize, cellSize, cellSize);
   };
 

@@ -1,4 +1,5 @@
 @import './base.css';
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=VT323&display=swap');
 
 #app {
   max-width: 1280px;
@@ -32,4 +33,35 @@ a,
     
     padding: 0 2rem;
   }
+}
+
+/* FONTS */
+:root {
+--font-headline: 'VT323', monospace;
+--font-main: 'Space Mono', monospace;
+
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-headline);
+ 
+}
+
+h3 {
+    font-size: 2rem;
+    }
+
+h4 {
+    font-size: 1.5rem;
+    }
+
+body {
+  font-family: var(--font-main);
+}
+
+
+/* BACKGROUND */
+body {
+  background: linear-gradient(#000000 0%, #6C619E 100%);
+
 }
