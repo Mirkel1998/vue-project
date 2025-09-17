@@ -20,6 +20,10 @@ export function usePingpongGame() {
     canvas.width = fixedWidth;
     canvas.height = fixedHeight;
 
+    // Ensure the canvas's CSS dimensions match its internal resolution
+    canvas.style.width = `${fixedWidth}px`;
+    canvas.style.height = `${fixedHeight}px`;
+
     width = canvas.width;
     height = canvas.height;
     ballX = width / 2;
