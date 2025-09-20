@@ -268,7 +268,7 @@ button {
   background-color: #6C619E;
   color: white;
   border: none;
-  border-radius: 4px;
+  
   cursor: pointer;
   transition: background-color 0.2s;
 }
