@@ -13,6 +13,7 @@ import { RouterLink, RouterView } from 'vue-router'
       <nav>
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/about">About</RouterLink>
+        <RouterLink to="/landing">Landing Page</RouterLink>
       </nav>
     </div>
   </header>
@@ -81,5 +82,23 @@ nav a:first-of-type {
     padding: 1rem 0;
     margin-top: 1rem;
   }
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+router-link {
+  color: #6C619E;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+router-link:hover {
+  text-decoration: underline;
 }
 </style>

@@ -267,8 +267,6 @@ button {
   font-size: 1rem;
   background-color: #6C619E;
   color: white;
-  border: none;
-  
   cursor: pointer;
   transition: background-color 0.2s;
 }
