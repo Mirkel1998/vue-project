@@ -41,13 +41,13 @@ export function usePingpongGame() {
   const drawBall = () => {
     ctx.beginPath();
     ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
-    ctx.fillStyle = "#000000"; // Updated ball color to black
+    ctx.fillStyle = "#000000"; 
     ctx.fill();
     ctx.closePath();
   };
 
   const drawPaddle = () => {
-    ctx.fillStyle = "#6C619E"; // Updated paddle color
+    ctx.fillStyle = "#6C619E"; 
     ctx.fillRect(paddleX, paddleY, paddleWidth, paddleHeight);
   };
 

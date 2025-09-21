@@ -72,7 +72,6 @@ export function useFlappyBoxGame() {
       box.y = height - box.size;
       box.velocity = 0;
       stopGame();
-      // Removed the alert for hitting the ground
     } else if (box.y < 0) {
       box.y = 0;
       box.velocity = 0;
@@ -87,7 +86,6 @@ export function useFlappyBoxGame() {
         (box.y < pipe.y || box.y + box.size > pipe.y + pipeGap)
       ) {
         stopGame();
-        // Removed the alert for hitting a pipe
         return;
       }
     }

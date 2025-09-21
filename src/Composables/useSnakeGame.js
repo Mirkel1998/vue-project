@@ -34,14 +34,14 @@ export function useSnakeGame() {
   };
 
   const drawSnake = () => {
-    ctx.fillStyle = "#6C619E"; // Updated snake color to #6C619E
+    ctx.fillStyle = "#6C619E"; 
     snake.forEach((segment) => {
       ctx.fillRect(segment.x * cellSize, segment.y * cellSize, cellSize, cellSize);
     });
   };
 
   const drawFood = () => {
-    ctx.fillStyle = "#000000"; // Updated food color to black
+    ctx.fillStyle = "#000000"; 
     ctx.fillRect(food.x * cellSize, food.y * cellSize, cellSize, cellSize);
   };
 
@@ -51,7 +51,7 @@ export function useSnakeGame() {
     // Check for collisions with walls
     if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize) {
       stopGame();
-      return; // Removed the alert for hitting the wall
+      return; 
     }
 
     // Check for collisions with itself
@@ -77,7 +77,7 @@ export function useSnakeGame() {
     drawSnake();
     drawFood();
     moveSnake();
-    animationFrameId = setTimeout(draw, 150); // Increased delay to 150ms for slower movement
+    animationFrameId = setTimeout(draw, 150); 
   };
 
   const startGame = () => {
@@ -129,7 +129,7 @@ export function useSnakeGame() {
     gameCardRef,
     isGameRunning,
     startGame,
-    resetGame, // Expose resetGame instead of stopGame
+    resetGame, 
   };
 }
 

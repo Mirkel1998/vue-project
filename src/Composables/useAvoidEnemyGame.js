@@ -24,22 +24,22 @@ export function useAvoidEnemyGame() {
     height = canvas.height;
 
     // Initialize game variables
-    player = { x: width / 2, y: height - 30, size: 20, speed: 8 }; // Increased player speed from 5 to 8
+    player = { x: width / 2, y: height - 30, size: 20, speed: 8 }; 
     enemies = Array.from({ length: 5 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height / 2,
       size: 20,
-      speed: 1 + Math.random() * 1.5, // Reduced enemy speed range from 2-4 to 1-2.5
+      speed: 1 + Math.random() * 1.5, 
     }));
   };
 
   const drawPlayer = () => {
-    ctx.fillStyle = "#6C619E"; // Updated player color
+    ctx.fillStyle = "#6C619E"; 
     ctx.fillRect(player.x, player.y, player.size, player.size);
   };
 
   const drawEnemies = () => {
-    ctx.fillStyle = "#000000"; // Updated enemy color to black
+    ctx.fillStyle = "#000000"; 
     enemies.forEach((enemy) => {
       ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
     });
@@ -126,7 +126,7 @@ export function useAvoidEnemyGame() {
     isGameRunning,
     startGame,
     stopGame,
-    resetGame, // Expose the resetGame function
+    resetGame, 
   };
 }
 

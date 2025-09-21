@@ -36,7 +36,7 @@ export function useSpaceShooterGame() {
   };
 
   const drawPlayer = () => {
-    ctx.fillStyle = "#6C619E"; // Updated player color
+    ctx.fillStyle = "#6C619E"; 
     ctx.fillRect(player.x, player.y, player.width, player.height);
   };
 
@@ -48,7 +48,7 @@ export function useSpaceShooterGame() {
   };
 
   const drawEnemies = () => {
-    ctx.fillStyle = "#000000"; // Updated enemy color to black
+    ctx.fillStyle = "#000000"; 
     enemies.forEach((enemy) => {
       ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
     });
@@ -181,7 +181,7 @@ export function useSpaceShooterGame() {
     gameCardRef,
     isGameRunning,
     startGame,
-    resetGame, // Expose resetGame instead of stopGame
+    resetGame, 
   };
 }
 
