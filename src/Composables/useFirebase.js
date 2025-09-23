@@ -1,6 +1,6 @@
 //Connection to Firebase
 
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -12,13 +12,13 @@ const firebaseConfig = {
   appId: "1:276463342217:web:8bbd3cc62d09ec03b1ec58"
 };
 
-let app
-let db
+// Ensure only one app is initialized
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 export function useFirebase() {
-  if (!app) {
-    app = initializeApp(firebaseConfig)
-    db = getFirestore(app)
-  }
-  return { app, db }
+  return { app, db };
 }
+
+// Export firebaseApp for direct import
+export { app as firebaseApp }

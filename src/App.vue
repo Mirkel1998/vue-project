@@ -1,5 +1,6 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
+import AuthButton from "./components/AuthButton.vue"
 
 </script>
 
@@ -14,6 +15,7 @@ import { RouterLink, RouterView } from 'vue-router'
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/about">About</RouterLink>
         <RouterLink to="/landing">Landing Page</RouterLink>
+        <AuthButton />
       </nav>
     </div>
   </header>
