@@ -8,6 +8,8 @@ export function useSnakeGame() {
 
   let ctx, width, height;
   let snake, food, direction, gridSize, cellSize;
+  let touchStartX = 0;
+  let touchStartY = 0;
 
   const initializeGame = () => {
     const canvas = canvasRef.value;
@@ -114,14 +116,63 @@ export function useSnakeGame() {
     if (key === "ArrowRight" && direction.x === 0) direction = { x: 1, y: 0 };
   };
 
+  const handleTouchStart = (event) => {
+    if (isGameRunning.value) {
+      event.preventDefault();
+    }
+    const touch = event.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+  };
+
+  const handleTouchEnd = (event) => {
+    if (!isGameRunning.value) return;
+    
+    event.preventDefault();
+    
+    const touch = event.changedTouches[0];
+    const touchEndX = touch.clientX;
+    const touchEndY = touch.clientY;
+    
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+    
+    // Minimum swipe distance
+    const minSwipeDistance = 30;
+    
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      // Horizontal swipe
+      if (Math.abs(deltaX) > minSwipeDistance) {
+        if (deltaX > 0 && direction.x === 0) {
+          direction = { x: 1, y: 0 }; // Right
+        } else if (deltaX < 0 && direction.x === 0) {
+          direction = { x: -1, y: 0 }; // Left
+        }
+      }
+    } else {
+      // Vertical swipe
+      if (Math.abs(deltaY) > minSwipeDistance) {
+        if (deltaY > 0 && direction.y === 0) {
+          direction = { x: 0, y: 1 }; // Down
+        } else if (deltaY < 0 && direction.y === 0) {
+          direction = { x: 0, y: -1 }; // Up
+        }
+      }
+    }
+  };
+
   onMounted(() => {
     initializeGame();
     window.addEventListener("keydown", changeDirection);
+    window.addEventListener("touchstart", handleTouchStart);
+    window.addEventListener("touchend", handleTouchEnd);
   });
 
   onUnmounted(() => {
     stopGame();
     window.removeEventListener("keydown", changeDirection);
+    window.removeEventListener("touchstart", handleTouchStart);
+    window.removeEventListener("touchend", handleTouchEnd);
   });
 
   return {
