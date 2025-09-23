@@ -20,10 +20,44 @@ import { useGames } from "@composables/useGames";
 const { games, newGameTitle, loading, addGame, deleteGame } = useGames(); // Include loading state
 </script>
 
-<style>
+<style scoped>
 @media (min-width: 1024px) {
   .about {
     min-height: 100vh;
   }
+}
+
+input[type="text"] {
+  margin: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-family: var(--font-main);
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  color: #333;
+  transition: border-color 0.2s;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: #6C619E;
+}
+
+button {
+  margin: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-family: var(--font-main);
+  background-color: #6C619E;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #554d7a;
 }
 </style>
