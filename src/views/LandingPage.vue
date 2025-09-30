@@ -7,6 +7,7 @@
         Here you can play, discover, and connect with others who love games as much as you do!
       </p>
       <router-link to="/" class="home-btn">See my homemade games</router-link>
+      <router-link to="/profile" class="create-user-btn">Create User</router-link>
     </div>
   </main>
 </template>
@@ -63,5 +64,21 @@ h1 {
 }
 .home-btn:hover {
   background-color: #554d7a;
+}
+
+.create-user-btn {
+  padding: 0.5rem 1.5rem;
+  background-color: #28a745;
+  color: white;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+  cursor: pointer;
+  margin-top: 1rem;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.create-user-btn:hover {
+  background-color: #218838;
 }
 </style>

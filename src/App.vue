@@ -11,6 +11,8 @@ import AuthButton from "./components/AuthButton.vue"
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/about">About</RouterLink>
         <RouterLink to="/landing">Landing Page</RouterLink>
+        <RouterLink to="/profile">My Profile</RouterLink>
+        <RouterLink to="/user/janesmith">View Profile</RouterLink>
         <AuthButton />
       </nav>
     </div>
