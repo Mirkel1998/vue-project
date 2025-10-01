@@ -13,7 +13,6 @@ export const useProfilesStore = defineStore('profiles', () => {
     description: '',
     location: '',
     favoriteGenre: '',
-    joinDate: new Date(),
     favoriteGames: []
   })
 
@@ -58,3 +57,4 @@ export const useProfilesStore = defineStore('profiles', () => {
     initProfiles
   }
 })
+

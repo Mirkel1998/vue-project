@@ -13,7 +13,6 @@
       <div class="profile-info">
         <h1>{{ userData.displayName }}</h1>
         <p class="username">@{{ userData.username }}</p>
-        <p class="join-date">Member since {{ formatDate(userData.joinDate) }}</p>
         <div class="profile-badges">
           <span class="badge genre-badge">{{ userData.favoriteGenre }}</span>
         </div>
@@ -86,20 +85,11 @@ const userData = reactive({
   description: 'Avid RPG player and streamer. Love exploring vast open worlds and collecting achievements!',
   location: 'Stockholm, Sweden',
   favoriteGenre: 'RPG',
-  joinDate: new Date('2022-08-20'),
   level: 35,
   gamesPlayed: 73,
   hoursPlayed: 442,
   favoriteGames: ['Elden Ring', 'The Witcher 3', 'Skyrim', 'Baldur\'s Gate 3']
 })
-
-const formatDate = (date) => {
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  })
-}
 
 const handleImageError = (event) => {
   event.target.src = 'https://via.placeholder.com/150x150/6C619E/FFFFFF?text=Profile'
@@ -300,4 +290,13 @@ const sendMessage = () => {
     flex-direction: column;
   }
 }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
 </style>
+

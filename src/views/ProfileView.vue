@@ -27,7 +27,6 @@
       <div class="profile-info">
         <h1>{{ profileData.displayName }}</h1>
         <p class="username">@{{ profileData.username }}</p>
-        <p class="join-date">Member since {{ formatDate(profileData.joinDate) }}</p>
         <div v-if="!isOwnProfile || !editMode" class="profile-badges">
           <span v-if="profileData.favoriteGenre" class="badge genre-badge">{{ profileData.favoriteGenre }}</span>
         </div>
@@ -186,7 +185,6 @@ const profileData = reactive({
   description: '',
   location: '',
   favoriteGenre: '',
-  joinDate: new Date(),
   favoriteGames: [],
   gamesPlayed: 0,
   hoursPlayed: 0
@@ -233,7 +231,6 @@ const loadUserProfile = (username) => {
       description: 'Avid RPG player and streamer. Love exploring vast open worlds and collecting achievements!',
       location: 'Stockholm, Sweden',
       favoriteGenre: 'RPG',
-      joinDate: new Date('2022-08-20'),
       favoriteGames: ['Elden Ring', 'The Witcher 3', 'Skyrim', 'Baldur\'s Gate 3'],
       gamesPlayed: 73,
       hoursPlayed: 442
@@ -250,21 +247,13 @@ const loadUserProfile = (username) => {
 
 const toggleEditMode = () => {
   if (editMode.value) {
-    // Save when switching from edit to view mode
-    saveProfile()
+    // Save when switching from edit to view mode (silently)
+    profilesStore.saveProfile(profileData)
   }
   editMode.value = !editMode.value
   if (!editMode.value) {
     editingDescription.value = false
   }
-}
-
-const formatDate = (date) => {
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  })
 }
 
 const toggleEditDescription = () => {
@@ -295,7 +284,7 @@ const removeFavoriteGame = (index) => {
 const saveProfile = () => {
   const success = profilesStore.saveProfile(profileData)
   if (success) {
-    alert('Profile saved successfully!')
+    // Remove alert - save silently
     // Reload the profile data to ensure view reflects saved changes
     if (isOwnProfile.value) {
       const updatedProfile = profilesStore.getCurrentUserProfile()
@@ -303,8 +292,6 @@ const saveProfile = () => {
         Object.assign(profileData, updatedProfile)
       }
     }
-  } else {
-    alert('Error saving profile')
   }
 }
 
@@ -405,11 +392,6 @@ const handleKeydown = (event) => {
 .username {
   color: #666;
   margin: 0 0 0.5rem 0;
-}
-
-.join-date {
-  color: #888;
-  margin: 0;
 }
 
 .section {
@@ -658,3 +640,4 @@ const handleKeydown = (event) => {
   }
 }
 </style>
+
