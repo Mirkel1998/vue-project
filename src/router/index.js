@@ -1,9 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import {useAuth} from '../Composables/useAuth.js'
+import { useAuth } from '../Composables/useAuth.js'
 import HomeView from '../views/HomeView.vue'
 import ProfileView from '../views/ProfileView.vue'
-import UserProfileView from '../views/UserProfileView.vue'
-import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,9 +12,9 @@ const router = createRouter({
       component: HomeView,
     },
     {
-      path: '/about',
-      name: 'about',
-      component: () => import('../views/AboutView.vue'),
+      path: '/usergames',
+      name: 'usergames',
+      component: () => import('../views/UserGames.vue'),
       meta: { requiresAuth: true },
     },
      {
@@ -36,18 +34,18 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-      path: '/user/:username',
-      name: 'userProfile',
-      component: UserProfileView
+      path: '/community',
+      name: 'Community',
+      component: () => import('@/views/CommunityView.vue')
     }
+
   ],
 })
 
 // Route guard for authentication
 router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore()
-  
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+  const { isLoggedIn } = useAuth()
+  if (to.meta.requiresAuth && !isLoggedIn.value) {
     next('/login')
   } else {
     next()

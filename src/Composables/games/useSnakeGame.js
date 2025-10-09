@@ -1,15 +1,24 @@
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, getCurrentInstance } from "vue";
+import { useLeaderboard } from "@/Composables/useLeaderboard";
+import { useAuth } from "@/Composables/useAuth";
+import { useUserStore } from "@/piniaStores/users";
 
 export function useSnakeGame() {
   const canvasRef = ref(null);
   const gameCardRef = ref(null);
   const isGameRunning = ref(false);
+  const score = ref(0);
   let animationFrameId;
 
   let ctx, width, height;
   let snake, food, direction, gridSize, cellSize;
   let touchStartX = 0;
   let touchStartY = 0;
+
+  const { submitScore } = useLeaderboard("Snake");
+  const { currentUser } = useAuth();
+  const userStore = useUserStore();
+  const instance = getCurrentInstance();
 
   const initializeGame = () => {
     const canvas = canvasRef.value;
@@ -33,17 +42,18 @@ export function useSnakeGame() {
     snake = [{ x: 10, y: 10 }];
     food = { x: Math.floor(Math.random() * gridSize), y: Math.floor(Math.random() * gridSize) };
     direction = { x: 0, y: 0 };
+    score.value = 0;
   };
 
   const drawSnake = () => {
-    ctx.fillStyle = "#6C619E"; 
+    ctx.fillStyle = "#6C619E";
     snake.forEach((segment) => {
       ctx.fillRect(segment.x * cellSize, segment.y * cellSize, cellSize, cellSize);
     });
   };
 
   const drawFood = () => {
-    ctx.fillStyle = "#000000"; 
+    ctx.fillStyle = "#000000";
     ctx.fillRect(food.x * cellSize, food.y * cellSize, cellSize, cellSize);
   };
 
@@ -53,13 +63,13 @@ export function useSnakeGame() {
     // Check for collisions with walls
     if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize) {
       stopGame();
-      return; 
+      return;
     }
 
     // Check for collisions with itself
     if (snake.some((segment) => segment.x === head.x && segment.y === head.y)) {
       stopGame();
-      return; // Removed the alert for hitting itself
+      return;
     }
 
     // Add new head to the snake
@@ -68,8 +78,9 @@ export function useSnakeGame() {
     // Check if the snake eats the food
     if (head.x === food.x && head.y === food.y) {
       food = { x: Math.floor(Math.random() * gridSize), y: Math.floor(Math.random() * gridSize) };
+      score.value += 1;
     } else {
-      snake.pop(); // Remove the tail if no food is eaten
+      snake.pop();
     }
   };
 
@@ -79,25 +90,41 @@ export function useSnakeGame() {
     drawSnake();
     drawFood();
     moveSnake();
-    animationFrameId = setTimeout(draw, 150); 
+    animationFrameId = setTimeout(draw, 150);
   };
 
   const startGame = () => {
     if (!isGameRunning.value) {
       isGameRunning.value = true;
-      direction = { x: 1, y: 0 }; // Set initial direction to move right
+      direction = { x: 1, y: 0 };
+      score.value = 0;
       draw();
     }
   };
 
-  const stopGame = () => {
+  const stopGame = async () => {
     isGameRunning.value = false;
     clearTimeout(animationFrameId);
+    await submitIfReady();
+  };
+
+  const submitIfReady = async () => {
+    if (currentUser.value && !userStore.profile) {
+      await userStore.fetchUserProfile(currentUser.value.uid);
+    }
+    if (currentUser.value && userStore.profile && userStore.profile.username) {
+      await submitScore(
+        currentUser.value.uid,
+        userStore.profile.username,
+        score.value
+      );
+    }
   };
 
   const resetGame = () => {
-    initializeGame(); // Reinitialize the game variables
-    isGameRunning.value = false; // Stop the game
+    initializeGame();
+    isGameRunning.value = false;
+    score.value = 0;
   };
 
   const changeDirection = (event) => {
@@ -105,8 +132,12 @@ export function useSnakeGame() {
 
     const { key } = event;
 
-    // Prevent the default behavior of arrow keys (scrolling)
-    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key)) {
+    // Only prevent default if not typing in an input or textarea
+    if (
+      ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key) &&
+      event.target.tagName !== "INPUT" &&
+      event.target.tagName !== "TEXTAREA"
+    ) {
       event.preventDefault();
     }
 
@@ -127,35 +158,32 @@ export function useSnakeGame() {
 
   const handleTouchEnd = (event) => {
     if (!isGameRunning.value) return;
-    
+
     event.preventDefault();
-    
+
     const touch = event.changedTouches[0];
     const touchEndX = touch.clientX;
     const touchEndY = touch.clientY;
-    
+
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
-    
-    // Minimum swipe distance
+
     const minSwipeDistance = 30;
-    
+
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      // Horizontal swipe
       if (Math.abs(deltaX) > minSwipeDistance) {
         if (deltaX > 0 && direction.x === 0) {
-          direction = { x: 1, y: 0 }; // Right
+          direction = { x: 1, y: 0 };
         } else if (deltaX < 0 && direction.x === 0) {
-          direction = { x: -1, y: 0 }; // Left
+          direction = { x: -1, y: 0 };
         }
       }
     } else {
-      // Vertical swipe
       if (Math.abs(deltaY) > minSwipeDistance) {
         if (deltaY > 0 && direction.y === 0) {
-          direction = { x: 0, y: 1 }; // Down
+          direction = { x: 0, y: 1 };
         } else if (deltaY < 0 && direction.y === 0) {
-          direction = { x: 0, y: -1 }; // Up
+          direction = { x: 0, y: -1 };
         }
       }
     }
@@ -180,7 +208,7 @@ export function useSnakeGame() {
     gameCardRef,
     isGameRunning,
     startGame,
-    resetGame, 
+    resetGame,
+    score,
   };
 }
-

@@ -1,14 +1,22 @@
 <script setup>
-import { usePingpongGame } from "@composables/usePingpongGame";
-import { useRockPaperScissorGame } from "@composables/useRockPaperScissorGame";
-import { useQuizGame } from "@composables/useQuizGame";
-import { useAvoidEnemyGame } from "@composables/useAvoidEnemyGame";
-import { useFlappyBoxGame } from "@composables/useFlappyBoxGame";
-import { useSpaceShooterGame } from "@composables/useSpaceShooterGame";
-import { useMazeEscapeGame } from "@composables/useMazeEscapeGame";
-import { useGuessTheColorGame } from "@composables/useGuessTheColorGame";
-import { useTicTacToeGame } from "@composables/useTicTacToeGame";
-import { useSnakeGame } from "@composables/useSnakeGame";
+import { ref } from 'vue'
+import { usePingpongGame } from "@/Composables/games/usePingpongGame";
+import { useRockPaperScissorGame } from "@/Composables/games/useRockPaperScissorGame";
+import { useQuizGame } from "@/Composables/games/useQuizGame";
+import { useAvoidEnemyGame } from "@/Composables/games/useAvoidEnemyGame";
+import { useFlappyBoxGame } from "@/Composables/games/useFlappyBoxGame";
+import { useSpaceShooterGame } from "@/Composables/games/useSpaceShooterGame";
+import { useMazeEscapeGame } from "@/Composables/games/useMazeEscapeGame";
+import { useGuessTheColorGame } from "@/Composables/games/useGuessTheColorGame";
+import { useTicTacToeGame } from "@/Composables/games/useTicTacToeGame";
+import { useSnakeGame } from "@/Composables/games/useSnakeGame";
+import LeaderBoard from "@/components/LeaderBoard.vue";
+import { useLeaderboard } from "@/Composables/useLeaderboard";
+import { useAuth } from "@/Composables/useAuth";
+import { useUserStore } from "@/piniaStores/users";
+
+const pingpongLeaderboardRef = ref(null)
+const rpsLeaderboardRef = ref(null)
 
 const {
   canvasRef: pingpongCanvasRef,
@@ -16,12 +24,14 @@ const {
   isGameRunning: isPingpongRunning,
   startGame: startPingpong,
   stopGame: stopPingpong,
+  score: pingpongScore,
 } = usePingpongGame();
 
 const {
   playerChoice,
   computerChoice,
   result,
+  score: rpsScore,
   playGame,
   resetGame,
 } = useRockPaperScissorGame();
@@ -41,6 +51,7 @@ const {
   isGameRunning: isAvoidEnemyRunning,
   startGame: startAvoidEnemy,
   resetGame: resetAvoidEnemy,
+  score: avoidEnemyScore,
 } = useAvoidEnemyGame();
 
 const {
@@ -49,6 +60,7 @@ const {
   isGameRunning: isFlappyBoxRunning,
   startGame: startFlappyBox,
   resetGame: resetFlappyBox,
+  score: flappyBoxScore,
 } = useFlappyBoxGame();
 
 const {
@@ -57,6 +69,7 @@ const {
   isGameRunning: isSpaceShooterRunning,
   startGame: startSpaceShooter,
   resetGame: resetSpaceShooter,
+  score: spaceShooterScore,
 } = useSpaceShooterGame();
 
 const {
@@ -65,12 +78,14 @@ const {
   isGameRunning: isMazeEscapeRunning,
   startGame: startMazeEscape,
   resetGame: resetMazeEscape,
+  score: mazeEscapeScore,
 } = useMazeEscapeGame();
 
 const {
   hexValue,
   colorOptions,
   message,
+  score,
   initializeGame: initializeGuessTheColor,
   selectColor,
 } = useGuessTheColorGame();
@@ -79,6 +94,7 @@ const {
   board,
   currentPlayer,
   message: ticTacToeMessage,
+  score: ticTacToeScore,
   makeMove,
   resetGame: resetTicTacToe,
 } = useTicTacToeGame();
@@ -89,7 +105,10 @@ const {
   isGameRunning: isSnakeRunning,
   startGame: startSnake,
   resetGame: resetSnake,
+  score: snakeScore,
 } = useSnakeGame();
+
+pingpongLeaderboardRef.value?.fetchLeaderboard()
 </script>
 
 <template>
@@ -99,10 +118,14 @@ const {
       <div class="game-card" ref="pingpongGameCardRef">
         <h2>Ping Pong</h2>
         <canvas ref="pingpongCanvasRef"></canvas>
+        <div class="score-display">
+          Score: {{ pingpongScore }}
+        </div>
         <div class="controls">
           <button @click="startPingpong" :disabled="isPingpongRunning">Start</button>
           <button @click="stopPingpong" :disabled="!isPingpongRunning">Stop</button>
         </div>
+        <LeaderBoard ref="pingpongLeaderboardRef" :game="'Pingpong'" />
       </div>
       <div class="game-card">
         <h2>Rock Paper Scissors</h2>
@@ -116,7 +139,11 @@ const {
           <p><strong>Computer Choice:</strong> {{ computerChoice || 'None' }}</p>
           <p><strong>Result:</strong> {{ result || 'No result yet' }}</p>
         </div>
+        <div class="score-display">
+          Score: {{ rpsScore }}
+        </div>
         <button @click="resetGame" class="reset-button">Reset</button>
+        <LeaderBoard :game="'RockPaperScissors'" />
       </div>
       <div class="game-card">
         <h2>Star Wars Quiz</h2>
@@ -134,12 +161,16 @@ const {
               {{ option }}
             </button>
           </div>
+          <div class="score-display">
+            Score: {{ quizScore }}
+          </div>
         </div>
         <div v-else>
           <p class="quiz-result-title"><strong>Quiz Finished!</strong></p>
-          <p class="quiz-result-score">You scored {{ score }} out of {{ questions.length }}.</p>
+          <p class="quiz-result-score">You scored {{ quizScore }} out of {{ questions.length }}.</p>
           <button @click="resetQuiz" class="reset-button">Play Again</button>
         </div>
+        <LeaderBoard :game="'QuizGame'" />
       </div>
       <div class="game-card" ref="avoidEnemyGameCardRef">
         <h2>Avoid the Enemy</h2>
@@ -148,22 +179,34 @@ const {
           <button @click="startAvoidEnemy" :disabled="isAvoidEnemyRunning">Start</button>
           <button @click="resetAvoidEnemy" :disabled="isAvoidEnemyRunning">Reset</button>
         </div>
+        <div class="score-display">
+          Score: {{ avoidEnemyScore }}
+        </div>
+        <LeaderBoard :game="'AvoidEnemy'" />
       </div>
       <div class="game-card" ref="flappyBoxGameCardRef">
         <h2>Flappy Box</h2>
         <canvas ref="flappyBoxCanvasRef"></canvas>
+        <div class="score-display">
+          Score: {{ flappyBoxScore }}
+        </div>
         <div class="controls">
           <button @click="startFlappyBox" :disabled="isFlappyBoxRunning">Start</button>
           <button @click="resetFlappyBox" :disabled="isFlappyBoxRunning">Reset</button>
         </div>
+        <LeaderBoard :game="'FlappyBox'" />
       </div>
       <div class="game-card" ref="spaceShooterGameCardRef">
         <h2>Space Shooter</h2>
         <canvas ref="spaceShooterCanvasRef"></canvas>
+        <div class="score-display">
+          Score: {{ spaceShooterScore }}
+        </div>
         <div class="controls">
           <button @click="startSpaceShooter" :disabled="isSpaceShooterRunning">Start</button>
           <button @click="resetSpaceShooter" :disabled="isSpaceShooterRunning">Reset</button>
         </div>
+        <LeaderBoard :game="'SpaceShooter'" />
       </div>
       <div class="game-card" ref="mazeEscapeGameCardRef">
         <h2>Maze Escape</h2>
@@ -172,6 +215,10 @@ const {
           <button @click="startMazeEscape" :disabled="isMazeEscapeRunning">Start</button>
           <button @click="resetMazeEscape" :disabled="isMazeEscapeRunning">Reset</button>
         </div>
+        <div class="score-display">
+          Score: {{ mazeEscapeScore }}
+        </div>
+        <LeaderBoard :game="'MazeEscape'" />
       </div>
       <div class="game-card">
         <h2>Guess the Color (Hex)</h2>
@@ -185,8 +232,12 @@ const {
             @click="selectColor(index)"
           ></div>
         </div>
+        <div class="score-display">
+          Score: {{ score }}
+        </div>
         <p>{{ message }}</p>
         <button @click="initializeGuessTheColor">New Game</button>
+        <LeaderBoard :game="'GuessTheColor'" />
       </div>
       <div class="game-card">
         <h2>Tic-Tac-Toe</h2>
@@ -200,16 +251,24 @@ const {
             {{ cell }}
           </div>
         </div>
+        <div class="score-display">
+          Score: {{ ticTacToeScore }}
+        </div>
         <p>{{ ticTacToeMessage }}</p>
         <button @click="resetTicTacToe">New Game</button>
+        <LeaderBoard :game="'TicTacToe'" />
       </div>
       <div class="game-card" ref="snakeGameCardRef">
         <h2>Snake</h2>
         <canvas ref="snakeCanvasRef"></canvas>
+        <div class="score-display">
+          Score: {{ snakeScore }}
+        </div>
         <div class="controls">
           <button @click="startSnake" :disabled="isSnakeRunning">Start</button>
           <button @click="resetSnake" :disabled="isSnakeRunning">Reset</button>
         </div>
+        <LeaderBoard :game="'Snake'" />
       </div>
     </div>
   </main>
@@ -374,6 +433,13 @@ p {
 
 .tic-tac-toe-cell:hover {
   background-color: #ddd;
+}
+
+.score-display {
+  margin: 0.5rem 0;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #6C619E;
 }
 </style>
 

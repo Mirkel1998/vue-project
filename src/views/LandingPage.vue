@@ -3,7 +3,7 @@
     <h1>What is GameHub?</h1>
     <div class="info-box">
       <p>
-        GameHub is a combination of my own made games and a platform for people to socialize and share their own favorite games. 
+        GameHub is a combination of my own made games and a platform for people to socialize and share their own favorite games.
         Here you can play, discover, and connect with others who love games as much as you do!
       </p>
       <router-link to="/" class="home-btn">See my homemade games</router-link>
@@ -11,10 +11,6 @@
     </div>
   </main>
 </template>
-
-<script setup>
-// No logic yet, just a static page
-</script>
 
 <style scoped>
 .landing {

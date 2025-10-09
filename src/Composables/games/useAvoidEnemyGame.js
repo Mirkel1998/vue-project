@@ -1,4 +1,7 @@
 import { ref, onMounted } from "vue";
+import { useLeaderboard } from "@/Composables/useLeaderboard";
+import { useAuth } from "@/Composables/useAuth";
+import { useUserStore } from "@/piniaStores/users";
 
 export function useAvoidEnemyGame() {
   const canvasRef = ref(null);
@@ -8,6 +11,13 @@ export function useAvoidEnemyGame() {
 
   let ctx, width, height;
   let player, enemies;
+
+  const score = ref(0);
+  let timerInterval = null;
+
+  const { submitScore } = useLeaderboard("AvoidEnemy");
+  const { currentUser } = useAuth();
+  const userStore = useUserStore();
 
   const initializeGame = () => {
     const canvas = canvasRef.value;
@@ -24,22 +34,22 @@ export function useAvoidEnemyGame() {
     height = canvas.height;
 
     // Initialize game variables
-    player = { x: width / 2, y: height - 30, size: 20, speed: 8 }; 
+    player = { x: width / 2, y: height - 30, size: 20, speed: 8 };
     enemies = Array.from({ length: 5 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height / 2,
       size: 20,
-      speed: 1 + Math.random() * 1.5, 
+      speed: 1 + Math.random() * 1.5,
     }));
   };
 
   const drawPlayer = () => {
-    ctx.fillStyle = "#6C619E"; 
+    ctx.fillStyle = "#6C619E";
     ctx.fillRect(player.x, player.y, player.size, player.size);
   };
 
   const drawEnemies = () => {
-    ctx.fillStyle = "#000000"; 
+    ctx.fillStyle = "#000000";
     enemies.forEach((enemy) => {
       ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
     });
@@ -82,20 +92,46 @@ export function useAvoidEnemyGame() {
   const startGame = () => {
     if (!isGameRunning.value) {
       isGameRunning.value = true;
+      score.value = 0;
       draw();
+      timerInterval = setInterval(() => {
+        score.value += 1;
+      }, 1000);
     }
   };
 
-  const stopGame = () => {
+  const stopGame = async () => {
     isGameRunning.value = false;
     cancelAnimationFrame(animationFrameId);
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    await submitIfReady();
+  };
+
+  const submitIfReady = async () => {
+    if (currentUser.value && !userStore.profile) {
+      await userStore.fetchUserProfile(currentUser.value.uid);
+    }
+    if (currentUser.value && userStore.profile && userStore.profile.username) {
+      await submitScore(
+        currentUser.value.uid,
+        userStore.profile.username,
+        score.value
+      );
+    }
   };
 
   const movePlayer = (event) => {
     if (!isGameRunning.value) return;
 
-    // Prevent the default behavior of arrow keys (scrolling)
-    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) {
+    // Only prevent default if not typing in an input or textarea
+    if (
+      ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key) &&
+      event.target.tagName !== "INPUT" &&
+      event.target.tagName !== "TEXTAREA"
+    ) {
       event.preventDefault();
     }
 
@@ -111,8 +147,13 @@ export function useAvoidEnemyGame() {
   };
 
   const resetGame = () => {
-    initializeGame(); // Reinitialize the game variables
-    isGameRunning.value = false; // Stop the game
+    initializeGame();
+    isGameRunning.value = false;
+    score.value = 0;
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
   };
 
   onMounted(() => {
@@ -126,7 +167,8 @@ export function useAvoidEnemyGame() {
     isGameRunning,
     startGame,
     stopGame,
-    resetGame, 
+    resetGame,
+    score,
   };
 }
 

@@ -1,12 +1,21 @@
 import { ref, onMounted, onUnmounted } from "vue";
+import { useLeaderboard } from "@/Composables/useLeaderboard";
+import { useAuth } from "@/Composables/useAuth";
+import { useUserStore } from "@/piniaStores/users";
 
 export function useMazeEscapeGame() {
   const canvasRef = ref(null);
   const gameCardRef = ref(null);
   const isGameRunning = ref(false);
+  const score = ref(0); // Score = time in seconds
+  let timerInterval = null;
 
   let ctx, width, height;
   let player, exit, maze;
+
+  const { submitScore } = useLeaderboard("MazeEscape");
+  const { currentUser } = useAuth();
+  const userStore = useUserStore();
 
   const initializeGame = () => {
     const canvas = canvasRef.value;
@@ -41,7 +50,7 @@ export function useMazeEscapeGame() {
   };
 
   const drawPlayer = () => {
-    ctx.fillStyle = "#6C619E"; 
+    ctx.fillStyle = "#6C619E";
     ctx.fillRect(player.x, player.y, player.size, player.size);
   };
 
@@ -51,7 +60,7 @@ export function useMazeEscapeGame() {
   };
 
   const drawMaze = () => {
-    ctx.fillStyle = "#000000"; 
+    ctx.fillStyle = "#000000";
     maze.forEach((wall) => {
       ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
     });
@@ -70,8 +79,12 @@ export function useMazeEscapeGame() {
   const movePlayer = (event) => {
     if (!isGameRunning.value) return;
 
-    // Prevent the default behavior of arrow keys (scrolling)
-    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) {
+    // Only prevent default if not typing in an input or textarea
+    if (
+      ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key) &&
+      event.target.tagName !== "INPUT" &&
+      event.target.tagName !== "TEXTAREA"
+    ) {
       event.preventDefault();
     }
 
@@ -118,17 +131,44 @@ export function useMazeEscapeGame() {
   const startGame = () => {
     if (!isGameRunning.value) {
       isGameRunning.value = true;
+      score.value = 0;
       draw();
+      timerInterval = setInterval(() => {
+        score.value += 1;
+      }, 1000);
     }
   };
 
-  const stopGame = () => {
+  const stopGame = async () => {
     isGameRunning.value = false;
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    await submitIfReady();
+  };
+
+  const submitIfReady = async () => {
+    if (currentUser.value && !userStore.profile) {
+      await userStore.fetchUserProfile(currentUser.value.uid);
+    }
+    if (currentUser.value && userStore.profile && userStore.profile.username) {
+      await submitScore(
+        currentUser.value.uid,
+        userStore.profile.username,
+        score.value
+      );
+    }
   };
 
   const resetGame = () => {
     initializeGame(); // Reinitialize the game variables
     isGameRunning.value = false; // Stop the game
+    score.value = 0;
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
   };
 
   onMounted(() => {
@@ -147,6 +187,7 @@ export function useMazeEscapeGame() {
     isGameRunning,
     startGame,
     stopGame,
-    resetGame, 
+    resetGame,
+    score, // Expose score
   };
 }

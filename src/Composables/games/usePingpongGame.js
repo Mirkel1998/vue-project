@@ -1,13 +1,22 @@
-import { ref, onMounted } from "vue";
+import { ref, onMounted, getCurrentInstance } from "vue";
+import { useLeaderboard } from "@/Composables/useLeaderboard";
+import { useAuth } from "@/Composables/useAuth";
+import { useUserStore } from "@/piniaStores/users";
 
 export function usePingpongGame() {
   const canvasRef = ref(null);
   const gameCardRef = ref(null);
   const isGameRunning = ref(false);
+  const score = ref(0); // Add score
   let animationFrameId;
 
   let ctx, width, height, ballX, ballY, ballSpeedX, ballSpeedY, ballRadius;
   let paddleWidth, paddleHeight, paddleY, paddleX;
+
+  const { currentUser } = useAuth();
+  const userStore = useUserStore();
+  const { submitScore } = useLeaderboard("Pingpong");
+  const instance = getCurrentInstance();
 
   const initializeGame = () => {
     const canvas = canvasRef.value;
@@ -36,22 +45,23 @@ export function usePingpongGame() {
     paddleHeight = 10;
     paddleY = height - 20;
     paddleX = (width - paddleWidth) / 2;
+    score.value = 0; // Reset score on init
   };
 
   const drawBall = () => {
     ctx.beginPath();
     ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
-    ctx.fillStyle = "#000000"; 
+    ctx.fillStyle = "#000000";
     ctx.fill();
     ctx.closePath();
   };
 
   const drawPaddle = () => {
-    ctx.fillStyle = "#6C619E"; 
+    ctx.fillStyle = "#6C619E";
     ctx.fillRect(paddleX, paddleY, paddleWidth, paddleHeight);
   };
 
-  const moveBall = () => {
+  const moveBall = async () => {
     ballX += ballSpeedX;
     ballY += ballSpeedY;
 
@@ -70,6 +80,7 @@ export function usePingpongGame() {
       ballX < paddleX + paddleWidth
     ) {
       ballSpeedY = -ballSpeedY;
+      score.value += 1; // Increment score on paddle hit
     }
 
     // Reset ball if it falls below the paddle
@@ -77,22 +88,27 @@ export function usePingpongGame() {
       ballX = width / 2;
       ballY = height / 2;
       ballSpeedX = 4;
-      ballSpeedY = -4; // Reset Y speed to negative
+      ballSpeedY = -4;
+      // Always use submitIfReady to ensure username is loaded
+      await submitIfReady();
+      instance?.emit?.('gameOver', score.value)
+      score.value = 0;
     }
   };
 
-  const draw = () => {
+  const draw = async () => {
     if (!isGameRunning.value) return;
     ctx.clearRect(0, 0, width, height);
     drawBall();
     drawPaddle();
-    moveBall();
-    animationFrameId = requestAnimationFrame(draw);
+    await moveBall();
+    animationFrameId = requestAnimationFrame(() => draw());
   };
 
   const startGame = () => {
     if (!isGameRunning.value) {
       isGameRunning.value = true;
+      score.value = 0; // Reset score at start
       draw();
     }
   };
@@ -111,6 +127,24 @@ export function usePingpongGame() {
     if (paddleX + paddleWidth > width) paddleX = width - paddleWidth;
   };
 
+  const submitIfReady = async () => {
+    if (currentUser.value && !userStore.profile) {
+      await userStore.fetchUserProfile(currentUser.value.uid);
+    }
+    if (currentUser.value && userStore.profile && userStore.profile.username) {
+      console.log('Submitting score:', {
+        uid: currentUser.value?.uid,
+        username: userStore.profile?.username,
+        score: score.value
+      });
+      submitScore(
+        currentUser.value.uid,
+        userStore.profile.username,
+        score.value
+      );
+    }
+  };
+
   onMounted(() => {
     initializeGame();
     canvasRef.value.addEventListener("mousemove", movePaddle);
@@ -122,5 +156,6 @@ export function usePingpongGame() {
     isGameRunning,
     startGame,
     stopGame,
+    score, // Expose score
   };
 }

@@ -1,4 +1,7 @@
 import { ref } from "vue";
+import { useLeaderboard } from "@/Composables/useLeaderboard";
+import { useAuth } from "@/Composables/useAuth";
+import { useUserStore } from "@/piniaStores/users";
 
 export function useQuizGame() {
   const questions = ref([
@@ -13,7 +16,11 @@ export function useQuizGame() {
   const score = ref(0);
   const isQuizFinished = ref(false);
 
-  const selectAnswer = (optionIndex) => {
+  const { submitScore, fetchLeaderboard } = useLeaderboard("QuizGame");
+  const { currentUser } = useAuth();
+  const userStore = useUserStore();
+
+  const selectAnswer = async (optionIndex) => {
     if (isQuizFinished.value) return;
 
     if (optionIndex === questions.value[currentQuestionIndex.value].correct) {
@@ -24,6 +31,18 @@ export function useQuizGame() {
       currentQuestionIndex.value++;
     } else {
       isQuizFinished.value = true;
+      // Submit score to leaderboard when quiz finishes
+      if (currentUser.value && !userStore.profile) {
+        await userStore.fetchUserProfile(currentUser.value.uid);
+      }
+      if (currentUser.value && userStore.profile && userStore.profile.username) {
+        await submitScore(
+          currentUser.value.uid,
+          userStore.profile.username,
+          score.value
+        );
+        fetchLeaderboard();
+      }
     }
   };
 

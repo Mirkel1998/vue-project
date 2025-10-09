@@ -1,54 +1,40 @@
 <template>
   <div class="login-container">
     <div class="login-form">
-      <h2>{{ isRegistering ? 'Register' : 'Login' }}</h2>
-      
+      <h2>Login</h2>
+
       <form @submit.prevent="handleSubmit">
-        <div v-if="!isRegistering" class="form-group">
-          <label for="username">Username or Email:</label>
-          <input 
-            v-model="credentials.username" 
-            type="text" 
-            id="username"
-            required 
-            @keydown="handleKeydown"
+        <div class="form-group">
+          <label for="identifier">Username or Email:</label>
+          <input
+            v-model="credentials.identifier"
+            type="text"
+            id="identifier"
+            required
+            autocomplete="username"
           />
         </div>
-        
-        <div v-if="isRegistering" class="form-group">
-          <label for="email">Email:</label>
-          <input 
-            v-model="credentials.email" 
-            type="email" 
-            id="email"
-            required 
-            @keydown="handleKeydown"
-          />
-        </div>
-        
+
         <div class="form-group">
           <label for="password">Password:</label>
-          <input 
-            v-model="credentials.password" 
-            type="password" 
+          <input
+            v-model="credentials.password"
+            type="password"
             id="password"
-            required 
-            @keydown="handleKeydown"
+            required
+            autocomplete="current-password"
           />
         </div>
-        
-        <button type="submit" class="login-btn">
-          {{ isRegistering ? 'Register' : 'Login' }}
+
+        <button type="submit" class="login-btn" :disabled="loading">
+          Login
         </button>
-        
+
         <p v-if="error" class="error">{{ error }}</p>
       </form>
-      
+
       <p class="toggle-form">
-        {{ isRegistering ? 'Already have an account?' : "Don't have an account?" }}
-        <button @click="toggleForm" class="link-btn">
-          {{ isRegistering ? 'Login' : 'Register' }}
-        </button>
+        Don't have an account? Register
       </p>
     </div>
   </div>
@@ -57,53 +43,42 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { useAuth } from '@/Composables/useAuth'
+import { db } from '@/Composables/useFirebase'
+import { collection, query, where, getDocs } from 'firebase/firestore'
 
 const router = useRouter()
-const authStore = useAuthStore()
+const { login, authError, loading } = useAuth()
 
-const isRegistering = ref(false)
 const error = ref('')
 
 const credentials = reactive({
-  username: '',
-  password: '',
-  email: ''
+  identifier: '', // username or email
+  password: ''
 })
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   error.value = ''
-  
-  if (isRegistering.value) {
-    const success = authStore.register({
-      email: credentials.email,
-      password: credentials.password
-    })
-    if (success) {
-      router.push('/profile')
+  let identifier = credentials.identifier.trim()
+  let emailToUse = identifier
+
+  if (!identifier.includes('@')) {
+    const usersRef = collection(db, 'users')
+    const q = query(usersRef, where('username', '==', identifier.toLowerCase()))
+    const querySnapshot = await getDocs(q)
+    if (!querySnapshot.empty) {
+      emailToUse = querySnapshot.docs[0].data().email
     } else {
-      error.value = 'Registration failed'
-    }
-  } else {
-    const success = authStore.login(credentials.username, credentials.password)
-    if (success) {
-      router.push('/profile')
-    } else {
-      error.value = 'Invalid credentials'
+      error.value = 'Username not found'
+      return
     }
   }
-}
 
-const toggleForm = () => {
-  isRegistering.value = !isRegistering.value
-  error.value = ''
-  Object.keys(credentials).forEach(key => credentials[key] = '')
-}
-
-const handleKeydown = (event) => {
-  // Explicitly allow spacebar and prevent any global handlers
-  if (event.code === 'Space' || event.keyCode === 32) {
-    event.stopPropagation()
+  await login(emailToUse, credentials.password)
+  if (!authError.value) {
+    router.push('/profile')
+  } else {
+    error.value = authError.value
   }
 }
 </script>
@@ -225,7 +200,7 @@ const handleKeydown = (event) => {
   .login-container {
     padding: 1rem;
   }
-  
+
   .login-form {
     padding: 1.5rem;
   }

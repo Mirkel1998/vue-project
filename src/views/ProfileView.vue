@@ -1,86 +1,39 @@
 <template>
-  <div class="profile">
-    <!-- Profile actions -->
-    <div class="profile-actions">
-      <button v-if="isOwnProfile && !editMode" @click="toggleEditMode" class="edit-profile-btn">
-        Edit Profile
-      </button>
-      <button v-if="isOwnProfile && editMode" @click="toggleEditMode" class="view-profile-btn">
-        View Profile
-      </button>
-      <button v-if="isOwnProfile" @click="logout" class="logout-btn">Logout</button>
-    </div>
-    
+  <div class="profile" v-if="!loading && profileData">
     <div class="profile-header">
       <div class="profile-picture-container">
-        <img 
-          :src="profileData.profilePicture || 'https://via.placeholder.com/150x150/6C619E/FFFFFF?text=Profile'" 
-          alt="Profile Picture" 
-          class="profile-picture"
-          @error="handleImageError"
-        />
-        <button v-if="isOwnProfile && editMode" @click="changeProfilePicture" class="change-photo-btn">
-          Change Photo
-        </button>
+        <div class="profile-picture" style="width:150px;height:150px;border-radius:50%;background:#6C619E;display:flex;align-items:center;justify-content:center;">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="38" fill="#fff"/>
+            <circle cx="40" cy="32" r="16" fill="#6C619E"/>
+            <ellipse cx="40" cy="62" rx="22" ry="12" fill="#6C619E"/>
+          </svg>
+        </div>
       </div>
-      
-      <div class="profile-info">
-        <h1>{{ profileData.displayName }}</h1>
-        <p class="username">@{{ profileData.username }}</p>
-        <div v-if="!isOwnProfile || !editMode" class="profile-badges">
-          <span v-if="profileData.favoriteGenre" class="badge genre-badge">{{ profileData.favoriteGenre }}</span>
+      <div class="profile-info" style="display: flex; align-items: center; gap: 1rem;">
+        <h1 style="margin: 0;">
+          <span class="username-display" style="font-size:2rem; color:#ffffff;">
+            {{ profileData.username }}
+          </span>
+        </h1>
+        <div v-if="profileData.favoriteGenre" class="profile-badges">
+          <span class="badge genre-badge">{{ profileData.favoriteGenre }}</span>
         </div>
       </div>
     </div>
 
     <div class="profile-content">
-      <!-- About Me Section -->
       <div class="section">
-        <h2>{{ isOwnProfile ? 'About Me' : `About ${profileData.displayName}` }}</h2>
-        <div v-if="isOwnProfile && editMode" class="editable-section">
-          <textarea 
-            v-if="editingDescription"
-            v-model="profileData.description"
-            class="description-input"
-            placeholder="Tell us about yourself..."
-            @keydown="handleKeydown"
-          ></textarea>
-          <p v-else class="description">
-            {{ profileData.description || 'No description added yet.' }}
-          </p>
-          <button @click="toggleEditDescription" class="edit-btn">
-            {{ editingDescription ? 'Save' : 'Edit' }}
-          </button>
-        </div>
-        <p v-else class="description">
-          {{ profileData.description || (isOwnProfile ? 'No description added yet.' : 'This user hasn\'t added a description yet.') }}
-        </p>
+        <h2>About</h2>
+        <textarea v-model="profileData.description" placeholder="Tell us about yourself..."></textarea>
       </div>
 
-      <!-- Profile Information Section -->
       <div class="section">
         <h2>Profile Information</h2>
-        <div v-if="isOwnProfile && editMode" class="info-grid">
-          <div class="info-item">
-            <label>Display Name:</label>
-            <input 
-              v-model="profileData.displayName" 
-              type="text" 
-              @keydown="handleKeydown"
-            />
-          </div>
-          <div class="info-item">
-            <label>Email:</label>
-            <span>{{ profileData.email }}</span>
-          </div>
+        <div class="info-vertical">
           <div class="info-item">
             <label>Location:</label>
-            <input 
-              v-model="profileData.location" 
-              type="text" 
-              placeholder="Enter your location"
-              @keydown="handleKeydown"
-            />
+            <input v-model="profileData.location" type="text" placeholder="Enter your location" />
           </div>
           <div class="info-item">
             <label>Favorite Genre:</label>
@@ -95,262 +48,109 @@
             </select>
           </div>
         </div>
-        <div v-else class="info-grid">
-          <div class="info-item">
-            <label>Location:</label>
-            <span>{{ profileData.location || 'Not specified' }}</span>
-          </div>
-          <div class="info-item">
-            <label>Favorite Genre:</label>
-            <span>{{ profileData.favoriteGenre || 'Not specified' }}</span>
-          </div>
-          <div v-if="!isOwnProfile" class="info-item">
-            <label>Games Played:</label>
-            <span>{{ profileData.gamesPlayed || 0 }}</span>
-          </div>
-          <div v-if="!isOwnProfile" class="info-item">
-            <label>Hours Played:</label>
-            <span>{{ profileData.hoursPlayed || 0 }}</span>
-          </div>
-        </div>
       </div>
 
-      <!-- Favorite Games Section -->
       <div class="section">
-        <h2>Favorite Games</h2>
-        <div v-if="isOwnProfile && editMode" class="favorite-games">
-          <div class="add-game">
-            <input 
-              v-model="newFavoriteGame" 
-              type="text" 
-              placeholder="Add a favorite game..."
-              @keyup.enter="addFavoriteGame"
-              @keydown="handleKeydown"
-            />
-            <button @click="addFavoriteGame">Add Game</button>
+        <h2>Your High Scores</h2>
+        <div class="scores-list">
+          <div v-for="game in userScores" :key="game.name" class="score-item">
+            <span class="game-name">{{ game.displayName }}</span>
+            <span class="game-score">{{ game.score !== null ? game.score : '—' }}</span>
           </div>
-          <ul class="games-list">
-            <li v-for="(game, index) in profileData.favoriteGames" :key="index" class="game-item">
-              <span>{{ game }}</span>
-              <button @click="removeFavoriteGame(index)" class="remove-btn">×</button>
-            </li>
-          </ul>
-        </div>
-        <div v-else class="favorite-games">
-          <div v-if="profileData.favoriteGames.length === 0" class="no-games">
-            {{ isOwnProfile ? 'No favorite games added yet.' : 'No favorite games added yet.' }}
-          </div>
-          <ul v-else class="games-list">
-            <li v-for="(game, index) in profileData.favoriteGames" :key="index" class="game-item">
-              <span>{{ game }}</span>
-            </li>
-          </ul>
         </div>
       </div>
 
-      <!-- Action buttons for viewing other users -->
-      <div v-if="!isOwnProfile" class="action-buttons">
-        <button @click="sendFriendRequest" class="friend-btn">Add Friend</button>
-        <button @click="sendMessage" class="message-btn">Send Message</button>
-      </div>
-
-      <!-- Save button for own profile in edit mode -->
-      <button v-if="isOwnProfile && editMode" @click="saveProfile" class="save-profile-btn">
+      <button @click="saveProfile" class="save-profile-btn">
         Save Profile
       </button>
     </div>
   </div>
+  <div v-else-if="loading" class="loading">
+    Loading profile...
+  </div>
+  <div v-else class="not-found">
+    User not found.
+  </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import { useProfilesStore } from '@/stores/profiles'
+import { ref, reactive, onMounted, watch } from 'vue'
+import { useAuth } from '@/Composables/useAuth'
+import { useUserStore } from '@/piniaStores/users'
+import { db } from '@/Composables/useFirebase'
+import { setDoc, doc, getDoc } from 'firebase/firestore'
 
-const router = useRouter()
-const route = useRoute()
-const authStore = useAuthStore()
-const profilesStore = useProfilesStore()
+const { currentUser } = useAuth()
+const userStore = useUserStore()
 
-const editMode = ref(false)
-const editingDescription = ref(false)
-const newFavoriteGame = ref('')
-
+const loading = ref(true)
 const profileData = reactive({
-  displayName: '',
   username: '',
-  email: '',
-  profilePicture: '',
   description: '',
   location: '',
   favoriteGenre: '',
-  favoriteGames: [],
   gamesPlayed: 0,
   hoursPlayed: 0
 })
 
-// Check if viewing own profile
-const isOwnProfile = computed(() => {
-  return !route.params.username || route.params.username === authStore.currentUser?.username
-})
+// List of your games
+const games = [
+  { name: "Pingpong", displayName: "Ping Pong" },
+  { name: "Snake", displayName: "Snake" },
+  { name: "FlappyBox", displayName: "Flappy Box" },
+  { name: "SpaceShooter", displayName: "Space Shooter" },
+  { name: "AvoidEnemy", displayName: "Avoid the Enemy" },
+  { name: "RockPaperScissors", displayName: "Rock Paper Scissors" },
+  { name: "QuizGame", displayName: "Star Wars Quiz" },
+  { name: "MazeEscape", displayName: "Maze Escape" },
+  { name: "GuessTheColor", displayName: "Guess the Color" },
+  { name: "TicTacToe", displayName: "Tic Tac Toe" },
+];
 
-// Load profile data
-onMounted(() => {
-  loadProfileData()
-})
+const userScores = ref(games.map(g => ({ ...g, score: null })));
 
-// Watch for route changes
-watch(() => route.params.username, () => {
-  loadProfileData()
-  editMode.value = false
-  editingDescription.value = false
-})
-
-const loadProfileData = () => {
-  if (isOwnProfile.value) {
-    // Load current user's profile
-    const userProfile = profilesStore.getCurrentUserProfile()
-    if (userProfile) {
-      Object.assign(profileData, userProfile)
+const loadProfileData = async () => {
+  loading.value = true
+  if (currentUser.value) {
+    await userStore.fetchUserProfile(currentUser.value.uid)
+    if (userStore.profile) {
+      Object.assign(profileData, userStore.profile)
+      if (!profileData.gamesPlayed) profileData.gamesPlayed = 0
+      if (!profileData.hoursPlayed) profileData.hoursPlayed = 0
     }
-  } else {
-    // Load other user's profile
-    loadUserProfile(route.params.username)
-  }
-}
-
-const loadUserProfile = (username) => {
-  // Mock data for other users - in real app, fetch from API
-  const mockUsers = {
-    janesmith: {
-      displayName: 'Jane Smith',
-      username: 'janesmith',
-      email: 'jane@example.com',
-      profilePicture: '',
-      description: 'Avid RPG player and streamer. Love exploring vast open worlds and collecting achievements!',
-      location: 'Stockholm, Sweden',
-      favoriteGenre: 'RPG',
-      favoriteGames: ['Elden Ring', 'The Witcher 3', 'Skyrim', 'Baldur\'s Gate 3'],
-      gamesPlayed: 73,
-      hoursPlayed: 442
+    // Fetch scores for each game
+    for (let i = 0; i < games.length; i++) {
+      const game = games[i];
+      const scoreDoc = await getDoc(doc(db, `leaderboards/${game.name}/scores`, currentUser.value.uid));
+      userScores.value[i].score = scoreDoc.exists() ? scoreDoc.data().score : null;
     }
   }
-  
-  const userData = mockUsers[username]
-  if (userData) {
-    Object.assign(profileData, userData)
-  } else {
-    router.push('/404')
-  }
+  loading.value = false
 }
 
-const toggleEditMode = () => {
-  if (editMode.value) {
-    // Save when switching from edit to view mode (silently)
-    profilesStore.saveProfile(profileData)
-  }
-  editMode.value = !editMode.value
-  if (!editMode.value) {
-    editingDescription.value = false
-  }
-}
+onMounted(loadProfileData)
+watch(() => currentUser.value, loadProfileData)
 
-const toggleEditDescription = () => {
-  editingDescription.value = !editingDescription.value
-}
-
-const handleImageError = (event) => {
-  // Set a stock profile picture if the image fails to load
-  event.target.src = 'https://via.placeholder.com/150x150/6C619E/FFFFFF?text=Profile'
-}
-
-const changeProfilePicture = () => {
-  // In a real app, this would open a file picker
-  alert('Profile picture change functionality would go here')
-}
-
-const addFavoriteGame = () => {
-  if (newFavoriteGame.value.trim()) {
-    profileData.favoriteGames.push(newFavoriteGame.value.trim())
-    newFavoriteGame.value = ''
-  }
-}
-
-const removeFavoriteGame = (index) => {
-  profileData.favoriteGames.splice(index, 1)
-}
-
-const saveProfile = () => {
-  const success = profilesStore.saveProfile(profileData)
-  if (success) {
-    // Remove alert - save silently
-    // Reload the profile data to ensure view reflects saved changes
-    if (isOwnProfile.value) {
-      const updatedProfile = profilesStore.getCurrentUserProfile()
-      if (updatedProfile) {
-        Object.assign(profileData, updatedProfile)
-      }
-    }
-  }
-}
-
-const logout = () => {
-  authStore.logout()
-  router.push('/login')
-}
-
-const sendFriendRequest = () => {
-  alert('Friend request sent!')
-}
-
-const sendMessage = () => {
-  alert('Message feature would open here')
-}
-
-const handleKeydown = (event) => {
-  // Explicitly allow spacebar and prevent any global handlers
-  if (event.code === 'Space' || event.keyCode === 32) {
-    event.stopPropagation()
+const saveProfile = async () => {
+  if (!currentUser.value) return
+  try {
+    const userDoc = doc(db, 'users', currentUser.value.uid)
+    await setDoc(userDoc, { ...profileData }, { merge: true })
+    await userStore.fetchUserProfile(currentUser.value.uid)
+    alert('Profile saved successfully!')
+  } catch (e) {
+    alert('Failed to save profile: ' + e.message)
   }
 }
 </script>
 
 <style scoped>
 .profile {
-  max-width: 800px;
+  max-width: 1300px;
+  width: 100%;
   margin: 0 auto;
   padding: 2rem;
   font-family: monospace;
-}
-
-.profile-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 1rem;
-}
-
-.logout-btn {
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.edit-profile-btn, .view-profile-btn {
-  background-color: #6C619E;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-right: 0.5rem;
-}
-
-.edit-profile-btn:hover, .view-profile-btn:hover {
-  background-color: #5a4f85;
 }
 
 .profile-header {
@@ -374,24 +174,33 @@ const handleKeydown = (event) => {
   margin-bottom: 1rem;
 }
 
-.change-photo-btn {
-  background-color: #6C619E;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
 .profile-info h1 {
   margin: 0 0 0.5rem 0;
   color: #333;
 }
 
-.username {
-  color: #666;
-  margin: 0 0 0.5rem 0;
+.username-display {
+  font-size: 2rem;
+  color: #333;
+}
+
+.profile-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.genre-badge {
+  background-color: #6C619E;
+  color: white;
 }
 
 .section {
@@ -400,6 +209,10 @@ const handleKeydown = (event) => {
   background-color: #C0C0C0;
   border-radius: 8px;
   border-left: 4px solid #6C619E;
+  max-width: 1100px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .section h2 {
@@ -407,57 +220,9 @@ const handleKeydown = (event) => {
   color: #333;
 }
 
-.editable-section {
+.info-vertical {
   display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-.description {
-  flex: 1;
-  margin: 0;
-  padding: 0.5rem;
-  background-color: white;
-  border-radius: 4px;
-  min-height: 60px;
-  color: #333;
-  border-left: 4px solid #6C619E;
-}
-
-.description-input {
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  min-height: 60px;
-  resize: vertical;
-  font-family: monospace;
-  background-color: white !important;
-  color: #333 !important;
-  outline: none;
-  user-select: text !important;
-  pointer-events: auto !important;
-  position: relative;
-  z-index: 1;
-}
-
-.description-input:focus {
-  border-color: #6C619E;
-  box-shadow: 0 0 5px rgba(108, 97, 158, 0.3);
-}
-
-.edit-btn {
-  background-color: #6C619E;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  flex-direction: column;
   gap: 1rem;
 }
 
@@ -491,67 +256,6 @@ const handleKeydown = (event) => {
   box-shadow: 0 0 5px rgba(108, 97, 158, 0.3);
 }
 
-.add-game {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.add-game input {
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-family: monospace;
-  background-color: white !important;
-  color: #333 !important;
-  outline: none;
-  user-select: text !important;
-  pointer-events: auto !important;
-  position: relative;
-  z-index: 1;
-}
-
-.add-game input:focus {
-  border-color: #6C619E;
-  box-shadow: 0 0 5px rgba(108, 97, 158, 0.3);
-}
-
-.games-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.game-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem;
-  background-color: white;
-  margin-bottom: 0.5rem;
-  border-radius: 4px;
-  border-left: 4px solid #6C619E;
-}
-
-.game-item span {
-  color: #333;
-}
-
-.remove-btn {
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 25px;
-  height: 25px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .save-profile-btn {
   background-color: #28a745;
   color: white;
@@ -568,76 +272,62 @@ const handleKeydown = (event) => {
   background-color: #218838;
 }
 
-.profile-badges {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-top: 1rem;
-}
-
-.badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: bold;
-}
-
-.genre-badge {
-  background-color: #6C619E;
-  color: white;
-}
-
-.no-games {
-  color: #666;
-  font-style: italic;
+.loading {
   text-align: center;
-  padding: 1rem;
+  padding: 2rem;
+  font-size: 1.2rem;
+  color: #666;
 }
 
-.action-buttons {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  margin-top: 2rem;
+.not-found {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+  color: #dc3545;
 }
 
-.friend-btn, .message-btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
+.section textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
   border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
+  font-family: monospace;
+  background-color: white !important;
+  color: #333 !important;
+  outline: none;
+  resize: vertical;
+}
+
+.section textarea:focus {
+  border-color: #6C619E;
+  box-shadow: 0 0 5px rgba(108, 97, 158, 0.3);
+}
+
+.scores-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.score-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.game-name {
+  color: #333;
+}
+
+.game-score {
+  color: #6C619E;
   font-weight: bold;
-  transition: background-color 0.2s;
-}
-
-.friend-btn {
-  background-color: #28a745;
-  color: white;
-}
-
-.friend-btn:hover {
-  background-color: #218838;
-}
-
-.message-btn {
-  background-color: #6C619E;
-  color: white;
-}
-
-.message-btn:hover {
-  background-color: #554d7a;
-}
-
-@media (max-width: 768px) {
-  .profile-header {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .info-grid {
-    grid-template-columns: 1fr;
-  }
 }
 </style>
 

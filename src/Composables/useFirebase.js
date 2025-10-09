@@ -4,12 +4,12 @@ import { initializeApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC3SH2yxHNvoqMpDjKlmOTGgzJSm19NZkc",
-  authDomain: "avj-exam-project-2025.firebaseapp.com",
-  projectId: "avj-exam-project-2025",
-  storageBucket: "avj-exam-project-2025.firebasestorage.app",
-  messagingSenderId: "276463342217",
-  appId: "1:276463342217:web:8bbd3cc62d09ec03b1ec58"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 // Ensure only one app is initialized
@@ -21,4 +21,4 @@ export function useFirebase() {
 }
 
 // Export firebaseApp for direct import
-export { app as firebaseApp }
+export { app as firebaseApp, db }

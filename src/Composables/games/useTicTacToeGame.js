@@ -1,10 +1,18 @@
 import { ref } from "vue";
+import { useLeaderboard } from "@/Composables/useLeaderboard";
+import { useAuth } from "@/Composables/useAuth";
+import { useUserStore } from "@/piniaStores/users";
 
 export function useTicTacToeGame() {
   const board = ref(Array(9).fill(null)); // 3x3 grid represented as a 1D array
   const currentPlayer = ref("X"); // Player starts as "X"
   const winner = ref(null); // Track the winner
   const message = ref("");
+  const score = ref(0); // Track player wins
+
+  const { submitScore, fetchLeaderboard } = useLeaderboard("TicTacToe");
+  const { currentUser } = useAuth();
+  const userStore = useUserStore();
 
   const checkWinner = () => {
     const winningCombinations = [
@@ -23,17 +31,36 @@ export function useTicTacToeGame() {
     return board.value.every(cell => cell) ? "Draw" : null; // Check for a draw
   };
 
-  const makeMove = (index) => {
+  const makeMove = async (index) => {
     if (board.value[index] || winner.value) return; // Ignore if cell is occupied or game is over
 
     board.value[index] = currentPlayer.value;
     winner.value = checkWinner();
 
     if (winner.value) {
-      message.value = winner.value === "Draw" ? "It's a draw!" : `${winner.value} wins!`;
+      if (winner.value === "Draw") {
+        message.value = "It's a draw!";
+      } else {
+        message.value = `${winner.value} wins!`;
+        if (winner.value === "X") {
+          score.value += 1; // Only increment score for player wins
+          // Submit score to leaderboard
+          if (currentUser.value && !userStore.profile) {
+            await userStore.fetchUserProfile(currentUser.value.uid);
+          }
+          if (currentUser.value && userStore.profile && userStore.profile.username) {
+            await submitScore(
+              currentUser.value.uid,
+              userStore.profile.username,
+              score.value
+            );
+            fetchLeaderboard();
+          }
+        }
+      }
     } else {
       currentPlayer.value = currentPlayer.value === "X" ? "O" : "X"; // Switch player
-      if (currentPlayer.value === "O") makeComputerMove(); // Computer plays as "O"
+      if (currentPlayer.value === "O") makeComputerMove();
     }
   };
 
@@ -60,6 +87,7 @@ export function useTicTacToeGame() {
     currentPlayer,
     winner,
     message,
+    score,
     makeMove,
     resetGame,
   };
