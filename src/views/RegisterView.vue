@@ -1,86 +1,68 @@
 <template>
   <div class="login-container">
     <div class="login-form">
-      <h2>Login</h2>
+      <h2>Register</h2>
 
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
-          <label for="identifier">Username or Email:</label>
-          <input
-            v-model="credentials.identifier"
-            type="text"
-            id="identifier"
-            required
-            autocomplete="username"
-          />
+          <label for="username">Username:</label>
+          <input v-model="credentials.username" type="text" id="username" required />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input v-model="credentials.email" type="email" id="email" required autocomplete="email" />
         </div>
 
         <div class="form-group">
           <label for="password">Password:</label>
-          <input
-            v-model="credentials.password"
-            type="password"
-            id="password"
-            required
-            autocomplete="current-password"
-          />
+          <input v-model="credentials.password" type="password" id="password" required autocomplete="new-password" />
         </div>
 
-        <button type="submit" class="login-btn" :disabled="loading">
-          Login
-        </button>
+        <button type="submit" class="login-btn" :disabled="loading">Create account</button>
 
-        <p v-if="error" class="error">{{ error }}</p>
+        <p v-if="localError" class="error">{{ localError }}</p>
+        <p v-else-if="authError" class="error">{{ authError }}</p>
       </form>
 
       <p class="toggle-form">
-        Don't have an account?
-        <router-link to="/register" class="link-btn">Register</router-link>
+        Already have an account?
+        <router-link to="/login" class="link-btn">Login</router-link>
       </p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/Composables/useAuth'
-import { db } from '@/Composables/useFirebase'
-import { collection, query, where, getDocs } from 'firebase/firestore'
 
 const router = useRouter()
-const { login, authError, loading } = useAuth()
+const { register, authError, loading } = useAuth()
 
-const error = ref('')
+const localError = ref('')
 
 const credentials = reactive({
-  identifier: '', // username or email
+  username: '',
+  email: '',
   password: ''
 })
 
 const handleSubmit = async () => {
-  error.value = ''
-  let identifier = credentials.identifier.trim()
-  let emailToUse = identifier
-
-  if (!identifier.includes('@')) {
-    const usersRef = collection(db, 'users')
-    // query the lowercase index field
-    const q = query(usersRef, where('usernameLower', '==', identifier.toLowerCase()))
-    const querySnapshot = await getDocs(q)
-    if (!querySnapshot.empty) {
-      emailToUse = querySnapshot.docs[0].data().email
-    } else {
-      error.value = 'Username not found'
-      return
-    }
+  localError.value = ''
+  if (credentials.username.trim().length < 3) {
+    localError.value = 'Username must be at least 3 characters'
+    return
+  }
+  if (credentials.password.length < 6) {
+    localError.value = 'Password must be at least 6 characters'
+    return
   }
 
-  await login(emailToUse, credentials.password)
+  await register(credentials.email.trim(), credentials.password, credentials.username.trim())
   if (!authError.value) {
     router.push('/profile')
-  } else {
-    error.value = authError.value
   }
 }
 </script>
@@ -208,3 +190,4 @@ const handleSubmit = async () => {
   }
 }
 </style>
+

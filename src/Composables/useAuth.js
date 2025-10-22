@@ -1,6 +1,15 @@
 import { ref, computed } from "vue"
-import { firebaseApp} from "./useFirebase"
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "firebase/auth"
+import { firebaseApp, db } from "./useFirebase"
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  onAuthStateChanged,
+  signOut
+} from "firebase/auth"
+// Firestore helpers
+import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 
 const auth = getAuth(firebaseApp)
 
@@ -26,6 +35,31 @@ const login = async (email, password) => {
     finally {
         loading.value = false
     }
+}
+
+// new register function
+const register = async (email, password, username) => {
+  loading.value = true
+  authError.value = null
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+    const user = userCredential.user
+    if (username) {
+      await updateProfile(user, { displayName: username })
+    }
+    // create user document in Firestore
+    await setDoc(doc(db, "users", user.uid), {
+      email,
+      username: username ? username : null,
+      usernameLower: username ? username.toLowerCase() : null,
+      createdAt: serverTimestamp()
+    })
+    // user is automatically signed in after registration
+  } catch (error) {
+    authError.value = error.message
+  } finally {
+    loading.value = false
+  }
 }
 
 const logout = async (routerInstance) => {
@@ -54,6 +88,7 @@ export function useAuth() {
         authError,
         loading,
         login,
+        register, // <-- added
         logout
     }
 }
