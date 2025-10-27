@@ -80,11 +80,11 @@ const loading = ref(true)
 
 // Avatar options - same as in ProfileView
 const avatarOptions = [
-  { id: 'avatar1', name: 'Avatar 1', src: '/src/assets/avatars/avatar1.png' },
-  { id: 'avatar2', name: 'Avatar 2', src: '/src/assets/avatars/avatar2.png' },
-  { id: 'avatar3', name: 'Avatar 3', src: '/src/assets/avatars/avatar3.png' },
-  { id: 'avatar4', name: 'Avatar 4', src: '/src/assets/avatars/avatar4.png' },
-  { id: 'avatar5', name: 'Avatar 5', src: '/src/assets/avatars/avatar5.png' }
+  { id: 'avatar1', name: 'Avatar 1', src: '/avatars/avatar1.png' },
+  { id: 'avatar2', name: 'Avatar 2', src: '/avatars/avatar2.png' },
+  { id: 'avatar3', name: 'Avatar 3', src: '/avatars/avatar3.png' },
+  { id: 'avatar4', name: 'Avatar 4', src: '/avatars/avatar4.png' },
+  { id: 'avatar5', name: 'Avatar 5', src: '/avatars/avatar5.png' }
 ]
 
 const games = [
