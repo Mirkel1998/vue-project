@@ -5,11 +5,11 @@ import { useUserStore } from "@/piniaStores/users";
 
 export function useQuizGame() {
   const questions = ref([
-    { question: "What is the name of Han Solo's ship?", options: ["X-Wing", "TIE Fighter", "Millennium Falcon", "Star Destroyer"], correct: 2 },
-    { question: "Who is Luke Skywalker's father?", options: ["Obi-Wan Kenobi", "Yoda", "Darth Vader", "Mace Windu"], correct: 2 },
-    { question: "What is the weapon of a Jedi Knight?", options: ["Blaster", "Lightsaber", "Bowcaster", "Vibroblade"], correct: 1 },
-    { question: "What is the name of the Wookiee in Star Wars?", options: ["Chewbacca", "Ewok", "Jabba", "Bossk"], correct: 0 },
-    { question: "Who trained Luke Skywalker in 'The Empire Strikes Back'?", options: ["Obi-Wan Kenobi", "Yoda", "Qui-Gon Jinn", "Mace Windu"], correct: 1 },
+    { question: "What was the name of Cal Kestis's droid?", options: ["K-2so", "BD-1", "C1-10P", "IG-11"], correct: 1 },
+    { question: "In how many parsecs did Han Solo complete the Kessel Run?", options: ["Less than 14", "More than 12", "Less than 12", "Exactly 69"], correct: 2 },
+    { question: "Who was Caleb Dume?", options: ["Kanan Jarrus", "Wedge Antilles", "Willrow Hood", "Paige Tico"], correct: 0 },
+    { question: "What race was Ayla Secura?", options: ["Twi'lek", "Togruta", "Hutt", "Zabrak"], correct: 0 },
+    { question: "What kind of attack cruiser did the Republic use in the Clone Wars?", options: ["Star Destroyer", "Venator-class", "Imperial-class", "Mon Calamari"], correct: 1 },
   ]);
 
   const currentQuestionIndex = ref(0);
