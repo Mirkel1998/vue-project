@@ -14,7 +14,7 @@
       </div>
       <div class="profile-info" style="display: flex; align-items: center; gap: 1rem;">
         <h1 style="margin: 0;">
-          <span class="username-display" style="font-size:2rem; color:#333;">
+          <span class="username-display" style="font-size:2rem; color:white;">
             {{ profileData.username }}
           </span>
         </h1>
@@ -629,6 +629,146 @@ const saveProfile = async () => {
 .snackbar.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .profile {
+    padding: 1rem;
+  }
+
+  .profile-header {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .profile-picture {
+    width: 120px;
+    height: 120px;
+  }
+
+  .profile-info {
+    align-items: center !important;
+    text-align: center;
+  }
+
+  .username-display {
+    font-size: 1.5rem !important;
+  }
+
+  .section {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .section h2 {
+    font-size: 1.3rem;
+  }
+
+  .games-grid {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .user-game-card {
+    padding: 0.8rem;
+  }
+
+  .save-profile-btn {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .avatar-modal-content {
+    padding: 1.5rem;
+    width: 95%;
+  }
+
+  .avatar-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 0.8rem;
+  }
+
+  .avatar-preview {
+    width: 60px;
+    height: 60px;
+  }
+
+  .snackbar {
+    left: 10px;
+    right: 10px;
+    transform: translateY(100%);
+    padding: 0.8rem 1rem;
+  }
+
+  .snackbar.show {
+    transform: translateY(0);
+  }
+}
+
+/* Small Mobile Styles */
+@media (max-width: 480px) {
+  .profile {
+    padding: 0.5rem;
+  }
+
+  .profile-picture {
+    width: 100px;
+    height: 100px;
+  }
+
+  .username-display {
+    font-size: 1.3rem !important;
+  }
+
+  .section {
+    padding: 0.8rem;
+  }
+
+  .section h2 {
+    font-size: 1.2rem;
+  }
+
+  .user-game-card {
+    padding: 0.6rem;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .user-game-thumb {
+    width: 80px;
+    height: 50px;
+  }
+
+  .save-profile-btn {
+    padding: 0.7rem 1.2rem;
+    font-size: 0.9rem;
+  }
+
+  .avatar-modal-content {
+    padding: 1rem;
+  }
+
+  .avatar-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .avatar-preview {
+    width: 50px;
+    height: 50px;
+  }
+
+  .avatar-name {
+    font-size: 0.8rem;
+  }
+
+  .cancel-btn,
+  .save-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
 }
 </style>
 

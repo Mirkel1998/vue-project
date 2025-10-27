@@ -283,7 +283,7 @@ main {
 h1 {
   font-size: 2.5rem;
   margin-bottom: 2rem;
-  color: #333;
+  color: white;
 }
 
 h2 {
@@ -374,7 +374,6 @@ button:hover {
   width: 80px;
   height: 80px;
   background-color: #ddd;
-  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
 }
@@ -441,6 +440,123 @@ p {
   font-size: 1.2rem;
   font-weight: bold;
   color: #6C619E;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  main {
+    padding: 1rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .game-grid {
+    gap: 1rem;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .game-card {
+    width: 100%;
+    max-width: 350px;
+    padding: 1rem;
+  }
+
+  canvas {
+    height: 200px;
+  }
+
+  button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    margin: 0.3rem;
+  }
+
+  .color-options {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .color-swatch {
+    width: 60px;
+    height: 60px;
+  }
+
+  .tic-tac-toe-board {
+    width: 120px;
+  }
+
+  .tic-tac-toe-cell {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+
+  .grid-cell {
+    width: 60px;
+    height: 60px;
+  }
+
+  .quiz-question {
+    font-size: 0.9rem;
+  }
+
+  .quiz-result-title {
+    font-size: 1.3rem;
+  }
+
+  .quiz-result-score {
+    font-size: 1.1rem;
+  }
+}
+
+/* Small Mobile Styles */
+@media (max-width: 480px) {
+  main {
+    padding: 0.5rem;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .game-card {
+    max-width: 300px;
+    padding: 0.8rem;
+  }
+
+  canvas {
+    height: 180px;
+  }
+
+  button {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .color-swatch {
+    width: 50px;
+    height: 50px;
+  }
+
+  .tic-tac-toe-board {
+    width: 100px;
+  }
+
+  .tic-tac-toe-cell {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+  }
 }
 </style>
 

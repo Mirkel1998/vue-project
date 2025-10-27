@@ -145,6 +145,14 @@ onMounted(async () => {
   position: relative;
 }
 
+h1 {
+  color: white;
+}
+
+h3 {
+  color: white;
+}
+
 /* Snackbar styles */
 .snackbar {
   position: fixed;
@@ -171,6 +179,13 @@ onMounted(async () => {
   margin-bottom: 1rem;
 }
 
+.search-bar input {
+  flex: 1;
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+}
+
 .clear-btn {
   background: #dc3545;
   color: white;
@@ -188,6 +203,7 @@ onMounted(async () => {
   display: flex;
   flex-wrap: wrap;
   gap: 1.5rem;
+  justify-content: center;
 }
 
 .game-card {
@@ -237,5 +253,128 @@ button {
 
 button:hover {
   background-color: #554d7a;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .user-games {
+    padding: 1rem;
+    max-width: 100%;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.3rem;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .search-bar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .search-bar input {
+    width: 100%;
+    padding: 0.6rem;
+    font-size: 0.9rem;
+  }
+
+  .search-bar button {
+    width: 100%;
+    padding: 0.6rem;
+    font-size: 0.9rem;
+  }
+
+  .card-list {
+    gap: 1rem;
+    justify-content: center;
+  }
+
+  .game-card {
+    width: 100%;
+    max-width: 300px;
+    padding: 1rem;
+  }
+
+  .game-thumb {
+    width: 150px;
+    height: 85px;
+  }
+
+  .game-title {
+    font-size: 1rem;
+  }
+
+  .game-meta {
+    font-size: 0.85em;
+  }
+
+  button {
+    padding: 0.5rem 1.2rem;
+    font-size: 0.9rem;
+    width: 100%;
+    max-width: 120px;
+  }
+
+  .snackbar {
+    left: 10px;
+    right: 10px;
+    transform: translateY(100%);
+    padding: 0.8rem 1rem;
+  }
+
+  .snackbar.show {
+    transform: translateY(0);
+  }
+}
+
+/* Small Mobile Styles */
+@media (max-width: 480px) {
+  .user-games {
+    padding: 0.5rem;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+  }
+
+  h3 {
+    font-size: 1.2rem;
+  }
+
+  .game-card {
+    max-width: 280px;
+    padding: 0.8rem;
+  }
+
+  .game-thumb {
+    width: 130px;
+    height: 75px;
+  }
+
+  .game-title {
+    font-size: 0.95rem;
+  }
+
+  .game-meta {
+    font-size: 0.8em;
+  }
+
+  button {
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .snackbar {
+    padding: 0.7rem 0.8rem;
+    font-size: 0.9rem;
+  }
 }
 </style>
