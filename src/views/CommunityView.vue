@@ -71,12 +71,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { db } from '@/Composables/useFirebase'
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore'
+import { collection, getDocs, doc, getDoc, deleteDoc } from 'firebase/firestore'
+import { useAuth } from '@/Composables/useAuth'
+import { useUserStore } from '@/piniaStores/users'
 
+const { currentUser } = useAuth()
+const userStore = useUserStore()
 const users = ref([])
 const loading = ref(true)
+
+// Check if current user is admin
+const isAdmin = computed(() => {
+  const username = userStore.profile?.username
+  return username === 'Mikkel' || username === 'Mikkel (admin)'
+})
 
 // Avatar options - same as in ProfileView
 const avatarOptions = [

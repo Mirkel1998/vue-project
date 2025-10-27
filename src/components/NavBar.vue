@@ -18,6 +18,17 @@
       <RouterLink to="/usergames" @click="closeMobileMenu">My Games</RouterLink>
       <RouterLink to="/profile" @click="closeMobileMenu">My Profile</RouterLink>
       <RouterLink to="/community" @click="closeMobileMenu">Community</RouterLink>
+      
+      <!-- Admin link - only visible to admin users -->
+      <RouterLink 
+        v-if="isAdmin" 
+        to="/admin" 
+        @click="closeMobileMenu" 
+        class="admin-link"
+      >
+        🔧 Admin Panel
+      </RouterLink>
+      
       <AuthButton @click="closeMobileMenu" />
     </div>
 
@@ -28,11 +39,28 @@
 
 <script setup>
 import { RouterLink } from 'vue-router'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import AuthButton from './AuthButton.vue'
+import { useAuth } from '@/Composables/useAuth'
+import { useUserStore } from '@/piniaStores/users'
 
+const { currentUser } = useAuth()
+const userStore = useUserStore()
 const showMobileMenu = ref(false)
 const isMobile = ref(false)
+
+// Check if current user is admin - updated to handle "Mikkel (admin)"
+const isAdmin = computed(() => {
+  const username = userStore.profile?.username
+  return username === 'Mikkel' || username === 'Mikkel (admin)'
+})
+
+// Watch for user changes to update admin status
+watch(currentUser, async (newUser) => {
+  if (newUser) {
+    await userStore.fetchUserProfile(newUser.uid)
+  }
+}, { immediate: true })
 
 const checkMobile = () => {
   isMobile.value = window.innerWidth <= 768
@@ -49,9 +77,14 @@ const closeMobileMenu = () => {
   showMobileMenu.value = false
 }
 
-onMounted(() => {
+onMounted(async () => {
   checkMobile()
   window.addEventListener('resize', checkMobile)
+  
+  // Load user profile to check admin status
+  if (currentUser.value) {
+    await userStore.fetchUserProfile(currentUser.value.uid)
+  }
 })
 
 onUnmounted(() => {
@@ -153,6 +186,25 @@ nav a.router-link-active {
   color: white !important;
 }
 
+.admin-link {
+  background-color: #dc3545 !important;
+  color: white !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 4px;
+  font-size: 0.9rem !important;
+}
+
+.admin-link:hover {
+  background-color: #c82333 !important;
+  text-decoration: none !important;
+}
+
+.admin-link.router-link-exact-active,
+.admin-link.router-link-active {
+  background-color: #a71e2a !important;
+  color: white !important;
+}
+
 /* Desktop styles */
 @media (min-width: 769px) {
   nav {
@@ -221,6 +273,12 @@ nav a.router-link-active {
   .nav-links a:last-child {
     border-bottom: none;
   }
+
+  .admin-link {
+    width: 80% !important;
+    text-align: center !important;
+    font-size: 1.1rem !important;
+  }
 }
 
 /* Small Mobile Styles */
@@ -249,6 +307,10 @@ nav a.router-link-active {
   .hamburger-line {
     width: 20px;
     height: 2px;
+  }
+
+  .admin-link {
+    font-size: 1rem !important;
   }
 }
 </style>

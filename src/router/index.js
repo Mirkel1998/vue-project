@@ -36,22 +36,45 @@ const router = createRouter({
     },
     {
       path: '/community',
-      name: 'Community',
+      name: 'community',
       component: () => import('@/views/CommunityView.vue')
     },
     {
       path: '/register',
-      name: 'Register',
+      name: 'register',
       component: RegisterView,
-    }
+    },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('../views/AdminView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
   ],
 })
 
 // Route guard for authentication
-router.beforeEach((to, from, next) => {
-  const { isLoggedIn } = useAuth()
+router.beforeEach(async (to, from, next) => {
+  const { isLoggedIn, currentUser } = useAuth()
+  
   if (to.meta.requiresAuth && !isLoggedIn.value) {
     next('/login')
+  } else if (to.meta.requiresAdmin) {
+    // Check if user is admin
+    const { useUserStore } = await import('@/piniaStores/users')
+    const userStore = useUserStore()
+    
+    if (currentUser.value) {
+      await userStore.fetchUserProfile(currentUser.value.uid)
+      const username = userStore.profile?.username
+      if (username === 'Mikkel' || username === 'Mikkel (admin)') {
+        next()
+      } else {
+        next('/') // Redirect non-admin users to home
+      }
+    } else {
+      next('/login')
+    }
   } else {
     next()
   }

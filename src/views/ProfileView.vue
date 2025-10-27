@@ -132,7 +132,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, watch, computed } from 'vue'
 import { useAuth } from '@/Composables/useAuth'
 import { useUserStore } from '@/piniaStores/users'
 import { db } from '@/Composables/useFirebase'
@@ -258,6 +258,12 @@ const saveProfile = async () => {
     showSnackbarMessage('Failed to save profile: ' + e.message)
   }
 }
+
+// Update the isAdmin computed property:
+const isAdmin = computed(() => {
+  const username = userStore.profile?.username
+  return username === 'Mikkel' || username === 'Mikkel (admin)'
+})
 </script>
 
 <style scoped>
