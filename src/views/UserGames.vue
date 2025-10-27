@@ -12,6 +12,11 @@
       <button v-if="searchResults.length" @click="clearSearchResults" class="clear-btn">Clear</button>
     </div>
 
+    <!-- Snackbar notification -->
+    <div v-if="showSnackbar" class="snackbar" :class="{ show: showSnackbar }">
+      {{ snackbarMessage }}
+    </div>
+
     <div v-if="searchResults.length" class="search-results">
       <h3>Search Results:</h3>
       <div class="card-list">
@@ -64,6 +69,10 @@ const searchQuery = ref('')
 const searchResults = ref([])
 const userGames = ref([])
 
+// Snackbar state
+const showSnackbar = ref(false)
+const snackbarMessage = ref('')
+
 const { currentUser } = useAuth()
 const userStore = useUserStore()
 
@@ -89,11 +98,26 @@ function clearSearchResults() {
 function addGame(game) {
   if (!userGames.value.find(g => g.id === game.id)) {
     userGames.value.push(game)
+    showSnackbarMessage(`"${game.name}" added to your games!`)
+  } else {
+    showSnackbarMessage(`"${game.name}" is already in your games!`)
   }
 }
 
 function removeGame(id) {
+  const game = userGames.value.find(g => g.id === id)
   userGames.value = userGames.value.filter(g => g.id !== id)
+  if (game) {
+    showSnackbarMessage(`"${game.name}" removed from your games!`)
+  }
+}
+
+function showSnackbarMessage(message) {
+  snackbarMessage.value = message
+  showSnackbar.value = true
+  setTimeout(() => {
+    showSnackbar.value = false
+  }, 3000) // Hide after 3 seconds
 }
 
 watch(userGames, async (games) => {
@@ -118,6 +142,27 @@ onMounted(async () => {
   max-width: 900px;
   margin: 0 auto;
   padding: 2rem;
+  position: relative;
+}
+
+/* Snackbar styles */
+.snackbar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100%);
+  background-color: #333;
+  color: white;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  z-index: 1000;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.snackbar.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 .search-bar {
@@ -130,7 +175,6 @@ onMounted(async () => {
   background: #dc3545;
   color: white;
   border: none;
-  border-radius: 4px;
   padding: 0.4rem 1rem;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -148,7 +192,6 @@ onMounted(async () => {
 
 .game-card {
   background: #C0C0C0;
-  border-radius: 8px;
   border-left: 4px solid #6C619E;
   box-shadow: none;
   padding: 1.5rem 1rem 1rem 1rem;
@@ -164,7 +207,6 @@ onMounted(async () => {
   width: 180px;
   height: 100px;
   object-fit: cover;
-  border-radius: 4px;
   margin-bottom: 0.75rem;
 }
 
@@ -189,7 +231,6 @@ button {
   background-color: #6C619E;
   color: white;
   border: none;
-  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
 }

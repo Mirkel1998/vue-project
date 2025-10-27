@@ -50,6 +50,8 @@ export function useRockPaperScissorGame() {
       }
     } else {
       result.value = "You lose!";
+      // Reset score when player loses
+      score.value = 0;
     }
   };
 

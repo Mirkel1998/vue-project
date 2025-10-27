@@ -32,7 +32,6 @@ h1 {
 .info-box {
   background: #C0C0C0;
   border: 1px solid #aaa;
-  border-radius: 8px;
   padding: 2rem;
   max-width: 500px;
   width: 100%;
@@ -71,7 +70,6 @@ h1 {
   cursor: pointer;
   margin-top: 1rem;
   text-decoration: none;
-  border-radius: 4px;
 }
 
 .create-user-btn:hover {

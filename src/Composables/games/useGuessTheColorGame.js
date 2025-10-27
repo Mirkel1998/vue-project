@@ -55,6 +55,8 @@ export function useGuessTheColorGame() {
       }
     } else {
       message.value = "Try Again!";
+      // Reset score when player guesses wrong
+      score.value = 0;
     }
   };
 

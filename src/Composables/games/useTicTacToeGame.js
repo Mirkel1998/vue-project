@@ -40,6 +40,8 @@ export function useTicTacToeGame() {
     if (winner.value) {
       if (winner.value === "Draw") {
         message.value = "It's a draw!";
+        // Reset score on draw (optional)
+        score.value = 0;
       } else {
         message.value = `${winner.value} wins!`;
         if (winner.value === "X") {
@@ -56,6 +58,9 @@ export function useTicTacToeGame() {
             );
             fetchLeaderboard();
           }
+        } else if (winner.value === "O") {
+          // Reset score when computer wins
+          score.value = 0;
         }
       }
     } else {

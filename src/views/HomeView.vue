@@ -113,7 +113,7 @@ pingpongLeaderboardRef.value?.fetchLeaderboard()
 
 <template>
   <main>
-    <h1>Game Hub</h1>
+    <h1>Welcome to the Mini Games Hub!</h1>
     <div class="game-grid">
       <div class="game-card" ref="pingpongGameCardRef">
         <h2>Ping Pong</h2>
@@ -327,6 +327,7 @@ button {
   font-family: var(--font-main);
   background-color: #6C619E;
   color: white;
+  border: none;
   cursor: pointer;
   transition: background-color 0.2s;
 }

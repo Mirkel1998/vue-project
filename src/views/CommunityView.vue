@@ -12,11 +12,7 @@
               <div class="user-card-header">
                 <div class="profile-picture-container">
                   <div class="profile-picture">
-                    <svg width="60" height="60" viewBox="0 0 80 80">
-                      <circle cx="40" cy="40" r="38" fill="#fff"/>
-                      <circle cx="40" cy="32" r="16" fill="#6C619E"/>
-                      <ellipse cx="40" cy="62" rx="22" ry="12" fill="#6C619E"/>
-                    </svg>
+                    <img :src="getUserAvatar(user)" :alt="user.username" />
                   </div>
                 </div>
                 <div class="user-main">
@@ -29,17 +25,40 @@
                 <div v-if="user.favoriteGenre"><span class="details-label">Favorite Genre:</span> {{ user.favoriteGenre }}</div>
               </div>
               <button @click="toggleScores(user)" class="show-scores-btn">
-                {{ user.showScores ? 'Hide Scores' : 'Show Scores' }}
+                {{ user.showScores ? 'Hide' : 'Show More' }}
               </button>
             </div>
             <!-- Right: Game Scores (always present, but only filled if showScores) -->
             <div class="user-scores-col">
               <div v-if="user.showScores">
                 <div v-if="user.scoresLoading" class="loading">Loading scores...</div>
-                <div v-else class="scores-list">
-                  <div v-for="score in user.scores" :key="score.name" class="score-item">
-                    <span class="game-name">{{ score.displayName }}</span>
-                    <span class="game-score">{{ score.score !== null ? score.score : '—' }}</span>
+                <div v-else>
+                  <h4 class="games-title">Game Scores:</h4>
+                  <div class="scores-list">
+                    <div v-for="score in user.scores" :key="score.name" class="score-item">
+                      <span class="game-name">{{ score.displayName }}</span>
+                      <span class="game-score">{{ score.score !== null ? score.score : '—' }}</span>
+                    </div>
+                  </div>
+                  
+                  <!-- Add user's games section -->
+                  <div v-if="user.games && user.games.length" class="user-games-section">
+                    <h4 class="games-title">Favorite Games:</h4>
+                    <div class="user-games-list">
+                      <div v-for="game in user.games" :key="game.id" class="user-game-item">
+                        <img :src="game.background_image" :alt="game.name" class="game-thumb" />
+                        <div class="game-info">
+                          <div class="game-title">{{ game.name }}</div>
+                          <div class="game-meta">
+                            <span v-if="game.released">{{ game.released }}</span>
+                            <span v-if="game.publisher"> • {{ game.publisher }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else-if="user.showScores" class="no-user-games">
+                    <p>No games added yet.</p>
                   </div>
                 </div>
               </div>
@@ -59,6 +78,15 @@ import { collection, getDocs, doc, getDoc } from 'firebase/firestore'
 const users = ref([])
 const loading = ref(true)
 
+// Avatar options - same as in ProfileView
+const avatarOptions = [
+  { id: 'avatar1', name: 'Avatar 1', src: '/src/assets/avatars/avatar1.png' },
+  { id: 'avatar2', name: 'Avatar 2', src: '/src/assets/avatars/avatar2.png' },
+  { id: 'avatar3', name: 'Avatar 3', src: '/src/assets/avatars/avatar3.png' },
+  { id: 'avatar4', name: 'Avatar 4', src: '/src/assets/avatars/avatar4.png' },
+  { id: 'avatar5', name: 'Avatar 5', src: '/src/assets/avatars/avatar5.png' }
+]
+
 const games = [
   { name: "Pingpong", displayName: "Ping Pong" },
   { name: "Snake", displayName: "Snake" },
@@ -71,6 +99,12 @@ const games = [
   { name: "GuessTheColor", displayName: "Guess the Color" },
   { name: "TicTacToe", displayName: "Tic Tac Toe" },
 ];
+
+// Function to get user avatar
+const getUserAvatar = (user) => {
+  const avatar = avatarOptions.find(a => a.id === (user.avatar || 'avatar1'))
+  return avatar?.src || avatarOptions[0].src
+}
 
 onMounted(async () => {
   const snap = await getDocs(collection(db, "users"))
@@ -97,6 +131,8 @@ async function toggleScores(user) {
   user.showScores = !user.showScores
   if (user.showScores && user.scores.length === 0 && !user.scoresLoading) {
     user.scoresLoading = true
+    
+    // Fetch scores
     user.scores = await Promise.all(games.map(async (game) => {
       const scoreDoc = await getDoc(doc(db, `leaderboards/${game.name}/scores`, user.uid))
       return {
@@ -105,6 +141,15 @@ async function toggleScores(user) {
         score: scoreDoc.exists() ? scoreDoc.data().score : null
       }
     }))
+    
+    // Fetch user's full profile to get their games list
+    const userDoc = await getDoc(doc(db, 'users', user.uid))
+    if (userDoc.exists() && userDoc.data().games) {
+      user.games = userDoc.data().games
+    } else {
+      user.games = []
+    }
+    
     user.scoresLoading = false
   }
 }
@@ -126,7 +171,6 @@ async function toggleScores(user) {
 }
 .user-item {
   background-color: #C0C0C0;
-  border-radius: 8px;
   border-left: 4px solid #6C619E;
   padding: 1.5rem;
   width: 100%;
@@ -172,11 +216,16 @@ async function toggleScores(user) {
 .profile-picture {
   width: 60px;
   height: 60px;
-  border-radius: 50%;
-  background: #6C619E;
+  border: 2px solid #6C619E;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.profile-picture img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .user-main {
   display: flex;
@@ -206,7 +255,6 @@ async function toggleScores(user) {
   display: flex;
   justify-content: space-between;
   background: #fff;
-  border-radius: 4px;
   padding: 0.25rem 0.75rem;
   font-size: 1rem;
   border: 1px solid #eee;
@@ -240,5 +288,67 @@ async function toggleScores(user) {
   font-size: 1rem;
   padding: 0;
   text-align: left;
+}
+.user-games-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #ddd;
+}
+.games-title {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+.user-games-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.user-game-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  background: #fff;
+  border: 1px solid #eee;
+}
+.game-thumb {
+  width: 40px;
+  height: 25px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.game-info {
+  flex-grow: 1;
+  min-width: 0;
+}
+.game-title {
+  font-weight: bold;
+  color: #333;
+  font-size: 0.9rem;
+  margin-bottom: 0.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.game-meta {
+  font-size: 0.8rem;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.no-user-games {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #ddd;
+  color: #666;
+  text-align: center;
+}
+.no-user-games p {
+  margin: 0;
+  font-size: 0.9rem;
 }
 </style>
