@@ -190,7 +190,6 @@ nav a.router-link-active {
   background-color: #dc3545 !important;
   color: white !important;
   padding: 0.5rem 1rem !important;
-  border-radius: 4px;
   font-size: 0.9rem !important;
 }
 

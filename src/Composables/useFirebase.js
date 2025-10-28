@@ -2,6 +2,7 @@
 
 import { initializeApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -15,10 +16,11 @@ const firebaseConfig = {
 // Ensure only one app is initialized
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 export function useFirebase() {
-  return { app, db };
+  return { app, db, storage };
 }
 
 // Export firebaseApp for direct import
-export { app as firebaseApp, db }
+export { app as firebaseApp, db, storage }
