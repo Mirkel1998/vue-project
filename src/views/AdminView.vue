@@ -3,7 +3,7 @@
     <h1>🔧 Admin Panel</h1>
     <div class="admin-content">
       <p>Welcome to the admin panel, {{ userStore.profile?.username }}!</p>
-      <p>Here you can manage users and other system settings.</p>
+      <p>Here you can manage users.</p>
       
       <div class="admin-sections">
         <!-- User Management Section -->
