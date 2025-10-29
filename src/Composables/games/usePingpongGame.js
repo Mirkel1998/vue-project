@@ -7,7 +7,7 @@ export function usePingpongGame() {
   const canvasRef = ref(null);
   const gameCardRef = ref(null);
   const isGameRunning = ref(false);
-  const score = ref(0); // Add score
+  const score = ref(0);
   let animationFrameId;
 
   let ctx, width, height, ballX, ballY, ballSpeedX, ballSpeedY, ballRadius;
@@ -29,23 +29,23 @@ export function usePingpongGame() {
     canvas.width = fixedWidth;
     canvas.height = fixedHeight;
 
-    // Ensure the canvas's CSS dimensions match its internal resolution
-    canvas.style.width = `${fixedWidth}px`;
-    canvas.style.height = `${fixedHeight}px`;
+    // Remove the explicit CSS style setting to let CSS handle responsive sizing
+    // canvas.style.width = `${fixedWidth}px`;
+    // canvas.style.height = `${fixedHeight}px`;
 
     width = canvas.width;
     height = canvas.height;
     ballX = width / 2;
     ballY = height / 2;
     ballSpeedX = 4;
-    ballSpeedY = -4; // Set the initial Y speed to negative to make the ball move upward
+    ballSpeedY = -4;
     ballRadius = 10;
 
-    paddleWidth = width * 0.2; // Paddle width as a percentage of canvas width
+    paddleWidth = width * 0.2;
     paddleHeight = 10;
     paddleY = height - 20;
     paddleX = (width - paddleWidth) / 2;
-    score.value = 0; // Reset score on init
+    score.value = 0;
   };
 
   const drawBall = () => {
@@ -80,7 +80,7 @@ export function usePingpongGame() {
       ballX < paddleX + paddleWidth
     ) {
       ballSpeedY = -ballSpeedY;
-      score.value += 1; // Increment score on paddle hit
+      score.value += 1;
     }
 
     // Reset ball if it falls below the paddle
@@ -89,7 +89,6 @@ export function usePingpongGame() {
       ballY = height / 2;
       ballSpeedX = 4;
       ballSpeedY = -4;
-      // Always use submitIfReady to ensure username is loaded
       await submitIfReady();
       instance?.emit?.('gameOver', score.value)
       score.value = 0;
@@ -108,7 +107,7 @@ export function usePingpongGame() {
   const startGame = () => {
     if (!isGameRunning.value) {
       isGameRunning.value = true;
-      score.value = 0; // Reset score at start
+      score.value = 0;
       draw();
     }
   };
@@ -119,8 +118,18 @@ export function usePingpongGame() {
   };
 
   const movePaddle = (event) => {
-    const rect = canvasRef.value.getBoundingClientRect();
-    paddleX = event.clientX - rect.left - paddleWidth / 2;
+    const canvas = canvasRef.value;
+    const rect = canvas.getBoundingClientRect();
+
+    // Calculate the scale factor between displayed size and actual canvas size
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    // Get mouse position relative to canvas and adjust for scaling
+    const mouseX = (event.clientX - rect.left) * scaleX;
+
+    // Position paddle centered on mouse
+    paddleX = mouseX - paddleWidth / 2;
 
     // Prevent paddle from going out of bounds
     if (paddleX < 0) paddleX = 0;
@@ -156,6 +165,6 @@ export function usePingpongGame() {
     isGameRunning,
     startGame,
     stopGame,
-    score, // Expose score
+    score,
   };
 }

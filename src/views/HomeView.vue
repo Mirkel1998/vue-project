@@ -126,7 +126,12 @@ pingpongLeaderboardRef.value?.fetchLeaderboard()
           <button @click="stopPingpong" :disabled="!isPingpongRunning">Stop</button>
         </div>
         <LeaderBoard ref="pingpongLeaderboardRef" :game="'Pingpong'" />
+        <div class="controls-info">
+          <h4>Controls</h4>
+          <p>Move your mouse left and right to control the paddle</p>
+        </div>
       </div>
+
       <div class="game-card">
         <h2>Rock Paper Scissors</h2>
         <div class="choices">
@@ -144,7 +149,12 @@ pingpongLeaderboardRef.value?.fetchLeaderboard()
         </div>
         <button @click="resetGame" class="reset-button">Reset</button>
         <LeaderBoard :game="'RockPaperScissors'" />
+        <div class="controls-info">
+          <h4>Controls</h4>
+          <p>Click Rock, Paper, or Scissors buttons to play</p>
+        </div>
       </div>
+
       <div class="game-card">
         <h2>Star Wars Quiz</h2>
         <div v-if="!isQuizFinished">
@@ -171,7 +181,12 @@ pingpongLeaderboardRef.value?.fetchLeaderboard()
           <button @click="resetQuiz" class="reset-button">Play Again</button>
         </div>
         <LeaderBoard :game="'QuizGame'" />
+        <div class="controls-info">
+          <h4>Controls</h4>
+          <p>Click on the answer buttons to select your choice</p>
+        </div>
       </div>
+
       <div class="game-card" ref="avoidEnemyGameCardRef">
         <h2>Avoid the Enemy</h2>
         <canvas ref="avoidEnemyCanvasRef"></canvas>
@@ -183,7 +198,12 @@ pingpongLeaderboardRef.value?.fetchLeaderboard()
           Score: {{ avoidEnemyScore }}
         </div>
         <LeaderBoard :game="'AvoidEnemy'" />
+        <div class="controls-info">
+          <h4>Controls</h4>
+          <p>Use Arrow Keys to move and avoid enemies</p>
+        </div>
       </div>
+
       <div class="game-card" ref="flappyBoxGameCardRef">
         <h2>Flappy Box</h2>
         <canvas ref="flappyBoxCanvasRef"></canvas>
@@ -195,7 +215,12 @@ pingpongLeaderboardRef.value?.fetchLeaderboard()
           <button @click="resetFlappyBox" :disabled="isFlappyBoxRunning">Reset</button>
         </div>
         <LeaderBoard :game="'FlappyBox'" />
+        <div class="controls-info">
+          <h4>Controls</h4>
+          <p>Press Spacebar to make the box jump</p>
+        </div>
       </div>
+
       <div class="game-card" ref="spaceShooterGameCardRef">
         <h2>Space Shooter</h2>
         <canvas ref="spaceShooterCanvasRef"></canvas>
@@ -207,7 +232,12 @@ pingpongLeaderboardRef.value?.fetchLeaderboard()
           <button @click="resetSpaceShooter" :disabled="isSpaceShooterRunning">Reset</button>
         </div>
         <LeaderBoard :game="'SpaceShooter'" />
+        <div class="controls-info">
+          <h4>Controls</h4>
+          <p>Use Left/Right arrows to move, Spacebar to shoot</p>
+        </div>
       </div>
+
       <div class="game-card" ref="mazeEscapeGameCardRef">
         <h2>Maze Escape</h2>
         <canvas ref="mazeEscapeCanvasRef"></canvas>
@@ -219,7 +249,12 @@ pingpongLeaderboardRef.value?.fetchLeaderboard()
           Score: {{ mazeEscapeScore }}
         </div>
         <LeaderBoard :game="'MazeEscape'" />
+        <div class="controls-info">
+          <h4>Controls</h4>
+          <p>Use Arrow Keys to navigate through the maze</p>
+        </div>
       </div>
+
       <div class="game-card">
         <h2>Guess the Color (Hex)</h2>
         <p>Hex Value: <strong>{{ hexValue }}</strong></p>
@@ -238,7 +273,12 @@ pingpongLeaderboardRef.value?.fetchLeaderboard()
         <p>{{ message }}</p>
         <button @click="initializeGuessTheColor">New Game</button>
         <LeaderBoard :game="'GuessTheColor'" />
+        <div class="controls-info">
+          <h4>Controls</h4>
+          <p>Click on the color swatch that matches the hex value</p>
+        </div>
       </div>
+
       <div class="game-card">
         <h2>Tic-Tac-Toe</h2>
         <div class="tic-tac-toe-board">
@@ -257,7 +297,12 @@ pingpongLeaderboardRef.value?.fetchLeaderboard()
         <p>{{ ticTacToeMessage }}</p>
         <button @click="resetTicTacToe">New Game</button>
         <LeaderBoard :game="'TicTacToe'" />
+        <div class="controls-info">
+          <h4>Controls</h4>
+          <p>Click on empty squares to place X or O</p>
+        </div>
       </div>
+
       <div class="game-card" ref="snakeGameCardRef">
         <h2>Snake</h2>
         <canvas ref="snakeCanvasRef"></canvas>
@@ -269,6 +314,10 @@ pingpongLeaderboardRef.value?.fetchLeaderboard()
           <button @click="resetSnake" :disabled="isSnakeRunning">Reset</button>
         </div>
         <LeaderBoard :game="'Snake'" />
+        <div class="controls-info">
+          <h4>Controls</h4>
+          <p>Use Arrow Keys to control the snake. Eat food to grow!</p>
+        </div>
       </div>
     </div>
   </main>
@@ -442,6 +491,29 @@ p {
   color: #6C619E;
 }
 
+.controls-info {
+  border: 1px solid #dee2e6;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.controls-info h4 {
+  margin: 0 0 0.5rem 0;
+  color: #000000;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.controls-info p {
+  margin: 0;
+  color: #000000; /* Changed from #6c757d to black */
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
   main {
@@ -516,6 +588,21 @@ p {
   .quiz-result-score {
     font-size: 1.1rem;
   }
+
+  .controls-info {
+    padding: 0.6rem;
+    margin-top: 0.4rem;
+  }
+
+  .controls-info h4 {
+    font-size: 0.9rem;
+    color: #000000;
+  }
+
+  .controls-info p {
+    font-size: 0.8rem;
+    color: #000000; /* Ensure black on mobile too */
+  }
 }
 
 /* Small Mobile Styles */
@@ -556,6 +643,21 @@ p {
     width: 35px;
     height: 35px;
     font-size: 1rem;
+  }
+
+  .controls-info {
+    padding: 0.5rem;
+    margin-top: 0.3rem;
+  }
+
+  .controls-info h4 {
+    font-size: 0.85rem;
+    color: #000000;
+  }
+
+  .controls-info p {
+    font-size: 0.75rem;
+    color: #000000; /* Ensure black on small mobile too */
   }
 }
 </style>

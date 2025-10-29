@@ -14,15 +14,13 @@
 
 <style scoped>
 .landing {
-  min-height: 100vh;
+  height: auto; /* Changed from min-height: 100vh */
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
   background: #C0C0C0;
-  padding-top: 4rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding: 4rem 1rem 3rem 1rem; /* Added bottom padding */
 }
 
 h1 {
@@ -39,7 +37,7 @@ h1 {
   max-width: 500px;
   width: 100%;
   box-shadow: 0 2px 4px rgba(0,0,0,0.07);
-  margin-bottom: 2rem;
+  margin-bottom: 0; /* Removed bottom margin */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -93,9 +91,7 @@ h1 {
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
   .landing {
-    padding-top: 2rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding: 2rem 1rem 2rem 1rem;
   }
 
   h1 {
@@ -125,9 +121,7 @@ h1 {
 /* Small Mobile Styles */
 @media (max-width: 480px) {
   .landing {
-    padding-top: 1.5rem;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
+    padding: 1.5rem 0.5rem 1.5rem 0.5rem;
   }
 
   h1 {
