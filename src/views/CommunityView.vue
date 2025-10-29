@@ -1,9 +1,9 @@
 <template>
   <main class="community">
     <h1>Community</h1>
-    <div v-if="loading" class="loading">Loading users...</div>
+    <div v-if="loading" class="loading">{{ getLoadingMessage('users') }}</div>
     <div v-else>
-      <div v-if="users.length === 0" class="no-users">No users found.</div>
+      <div v-if="users.length === 0" class="no-users">{{ getEmptyMessage('users') }}</div>
       <div class="user-list">
         <div v-for="user in users" :key="user.uid" class="user-item">
           <div class="user-columns">
@@ -19,46 +19,46 @@
                   <span class="username">{{ user.username }}</span>
                 </div>
               </div>
-              <div class="user-details">
-                <div v-if="user.description"><span class="details-label">About:</span> {{ user.description }}</div>
-                <div v-if="user.location"><span class="details-label">Location:</span> {{ user.location }}</div>
-                <div v-if="user.favoriteGenre"><span class="details-label">Favorite Genre:</span> {{ user.favoriteGenre }}</div>
+              
+              <div v-if="shouldShowUserDetails(user)" class="user-details">
+                <div v-for="detail in getUserDetails(user)" :key="detail.label">
+                  <span class="details-label">{{ detail.label }}</span> {{ detail.value }}
+                </div>
               </div>
-              <button @click="toggleScores(user)" class="show-scores-btn">
-                {{ user.showScores ? 'Hide' : 'Show More' }}
+              
+              <button @click="handleToggleScores(user)" class="show-scores-btn">
+                {{ getToggleButtonText(user.showScores) }}
               </button>
             </div>
-            <!-- Right: Game Scores (always present, but only filled if showScores) -->
+            
+            <!-- Right: Game Scores -->
             <div class="user-scores-col">
               <div v-if="user.showScores">
-                <div v-if="user.scoresLoading" class="loading">Loading scores...</div>
+                <div v-if="user.scoresLoading" class="loading">{{ getLoadingMessage('scores') }}</div>
                 <div v-else>
                   <h4 class="games-title">Game Scores:</h4>
                   <div class="scores-list">
                     <div v-for="score in user.scores" :key="score.name" class="score-item">
                       <span class="game-name">{{ score.displayName }}</span>
-                      <span class="game-score">{{ score.score !== null ? score.score : '—' }}</span>
+                      <span class="game-score">{{ getScoreDisplay(score.score) }}</span>
                     </div>
                   </div>
                   
-                  <!-- Add user's games section -->
-                  <div v-if="user.games && user.games.length" class="user-games-section">
+                  <!-- User's games section -->
+                  <div v-if="userHasGames(user)" class="user-games-section">
                     <h4 class="games-title">Favorite Games:</h4>
                     <div class="user-games-list">
                       <div v-for="game in user.games" :key="game.id" class="user-game-item">
                         <img :src="game.background_image" :alt="game.name" class="game-thumb" />
                         <div class="game-info">
                           <div class="game-title">{{ game.name }}</div>
-                          <div class="game-meta">
-                            <span v-if="game.released">{{ game.released }}</span>
-                            <span v-if="game.publisher"> • {{ game.publisher }}</span>
-                          </div>
+                          <div class="game-meta">{{ formatGameMeta(game) }}</div>
                         </div>
                       </div>
                     </div>
                   </div>
                   <div v-else-if="user.showScores" class="no-user-games">
-                    <p>No games added yet.</p>
+                    <p>{{ getEmptyMessage('games') }}</p>
                   </div>
                 </div>
               </div>
@@ -71,98 +71,51 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { db } from '@/Composables/useFirebase'
-import { collection, getDocs, doc, getDoc, deleteDoc } from 'firebase/firestore'
-import { useAuth } from '@/Composables/useAuth'
-import { useUserStore } from '@/piniaStores/users'
+import { onMounted } from 'vue'
+import { useCommunityUsers } from '@/Composables/community/useCommunityUsers'
+import { useCommunityUsersUI } from '@/Composables/community/useCommunityUsersUI'
 
-const { currentUser } = useAuth()
-const userStore = useUserStore()
-const users = ref([])
-const loading = ref(true)
+// Smart composable - handles data and business logic
+const {
+  users,
+  loading,
+  loadUsers,
+  toggleUserScores,
+  getUserAvatar,
+  userHasGames,
+  getScoreDisplay
+} = useCommunityUsers()
 
-// Check if current user is admin
-const isAdmin = computed(() => {
-  const username = userStore.profile?.username
-  return username === 'Mikkel' || username === 'Mikkel (admin)'
-})
+// Dumb composable - handles UI state and interactions
+const {
+  isAdmin,
+  getToggleButtonText,
+  getLoadingMessage,
+  getEmptyMessage,
+  getUserDetails,
+  formatGameMeta,
+  shouldShowUserDetails
+} = useCommunityUsersUI()
 
-// Avatar options - same as in ProfileView
-const avatarOptions = [
-  { id: 'avatar1', name: 'Avatar 1', src: '/avatars/avatar1.png' },
-  { id: 'avatar2', name: 'Avatar 2', src: '/avatars/avatar2.png' },
-  { id: 'avatar3', name: 'Avatar 3', src: '/avatars/avatar3.png' },
-  { id: 'avatar4', name: 'Avatar 4', src: '/avatars/avatar4.png' },
-  { id: 'avatar5', name: 'Avatar 5', src: '/avatars/avatar5.png' }
-]
-
-const games = [
-  { name: "Pingpong", displayName: "Ping Pong" },
-  { name: "Snake", displayName: "Snake" },
-  { name: "FlappyBox", displayName: "Flappy Box" },
-  { name: "SpaceShooter", displayName: "Space Shooter" },
-  { name: "AvoidEnemy", displayName: "Avoid the Enemy" },
-  { name: "RockPaperScissors", displayName: "Rock Paper Scissors" },
-  { name: "QuizGame", displayName: "Star Wars Quiz" },
-  { name: "MazeEscape", displayName: "Maze Escape" },
-  { name: "GuessTheColor", displayName: "Guess the Color" },
-  { name: "TicTacToe", displayName: "Tic Tac Toe" },
-];
-
-// Function to get user avatar
-const getUserAvatar = (user) => {
-  const avatar = avatarOptions.find(a => a.id === (user.avatar || 'avatar1'))
-  return avatar?.src || avatarOptions[0].src
-}
-
-onMounted(async () => {
-  const snap = await getDocs(collection(db, "users"))
-  const seen = new Set()
-  users.value = snap.docs
-    .map(doc => ({
-      uid: doc.id,
-      showScores: false,
-      scores: [],
-      scoresLoading: false,
-      ...doc.data()
-    }))
-    .filter(user => {
-      if (!user.username) return false
-      if (!/^[A-Z]/.test(user.username)) return false
-      if (seen.has(user.username)) return false
-      seen.add(user.username)
-      return true
-    })
-  loading.value = false
-})
-
-async function toggleScores(user) {
-  user.showScores = !user.showScores
-  if (user.showScores && user.scores.length === 0 && !user.scoresLoading) {
-    user.scoresLoading = true
-    
-    // Fetch scores
-    user.scores = await Promise.all(games.map(async (game) => {
-      const scoreDoc = await getDoc(doc(db, `leaderboards/${game.name}/scores`, user.uid))
-      return {
-        name: game.name,
-        displayName: game.displayName,
-        score: scoreDoc.exists() ? scoreDoc.data().score : null
-      }
-    }))
-    
-    // Fetch user's full profile to get their games list
-    const userDoc = await getDoc(doc(db, 'users', user.uid))
-    if (userDoc.exists() && userDoc.data().games) {
-      user.games = userDoc.data().games
-    } else {
-      user.games = []
-    }
-    
-    user.scoresLoading = false
+// Handle toggle scores with error handling
+const handleToggleScores = async (user) => {
+  const result = await toggleUserScores(user)
+  
+  if (!result.success) {
+    console.error('Failed to load user scores:', result.message)
+    // Could add user notification here if needed
   }
 }
+
+// Initialize data on mount
+onMounted(async () => {
+  const result = await loadUsers()
+  
+  if (!result.success) {
+    console.error('Failed to load users:', result.message)
+    // Could add user notification here if needed
+  }
+})
 </script>
 
 <style scoped>
@@ -303,11 +256,6 @@ h1 {
   font-weight: bold;
   color: #6C619E;
   font-size: 1.3rem;
-}
-
-.user-desc {
-  color: #555;
-  font-size: 1rem;
 }
 
 .loading, .no-users {

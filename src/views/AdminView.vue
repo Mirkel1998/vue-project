@@ -9,8 +9,8 @@
         <!-- User Management Section -->
         <div class="admin-section">
           <h2>User Management</h2>
-          <button @click="loadUsers" class="admin-btn" :disabled="loadingUsers">
-            {{ loadingUsers ? 'Loading...' : '👥 Load All Users' }}
+          <button @click="handleLoadUsers" class="admin-btn" :disabled="loadingUsers">
+            {{ getLoadButtonText(loadingUsers) }}
           </button>
           
           <div v-if="users.length > 0" class="users-list">
@@ -19,17 +19,16 @@
               <div class="user-info">
                 <strong>{{ user.username }}</strong>
                 <span class="user-details">
-                  {{ user.email ? `(${user.email})` : '' }}
-                  {{ user.location ? `- ${user.location}` : '' }}
+                  {{ formatUserDetails(user) }}
                 </span>
               </div>
               <button 
-                v-if="user.username !== 'Mikkel' && user.username !== 'Mikkel (admin)'" 
-                @click="deleteUser(user)" 
+                v-if="!isAdminUser(user)" 
+                @click="handleDeleteUser(user)" 
                 class="delete-btn"
-                :disabled="deletingUsers.includes(user.uid)"
+                :disabled="isUserBeingDeleted(user.uid)"
               >
-                {{ deletingUsers.includes(user.uid) ? 'Deleting...' : '🗑️ Delete' }}
+                {{ getDeleteButtonText(isUserBeingDeleted(user.uid)) }}
               </button>
               <span v-else class="admin-badge">ADMIN</span>
             </div>
@@ -46,96 +45,57 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
 import { useUserStore } from '@/piniaStores/users'
-import { db } from '@/Composables/useFirebase'
-import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore'
+import { useAdminUsers } from '@/Composables/admin/useAdminUsers'
+import { useAdminUsersUI } from '@/Composables/admin/useAdminUsersUI'
 
 const userStore = useUserStore()
 
-const users = ref([])
-const loadingUsers = ref(false)
-const deletingUsers = ref([])
-const message = ref('')
-const messageType = ref('success')
+// Smart composable - handles data and business logic
+const {
+  users,
+  loadingUsers,
+  loadUsers,
+  deleteUser,
+  isAdminUser,
+  isUserBeingDeleted
+} = useAdminUsers()
 
-const games = [
-  { name: "Pingpong", displayName: "Ping Pong" },
-  { name: "Snake", displayName: "Snake" },
-  { name: "FlappyBox", displayName: "Flappy Box" },
-  { name: "SpaceShooter", displayName: "Space Shooter" },
-  { name: "AvoidEnemy", displayName: "Avoid the Enemy" },
-  { name: "RockPaperScissors", displayName: "Rock Paper Scissors" },
-  { name: "QuizGame", displayName: "Star Wars Quiz" },
-  { name: "MazeEscape", displayName: "Maze Escape" },
-  { name: "GuessTheColor", displayName: "Guess the Color" },
-  { name: "TicTacToe", displayName: "Tic Tac Toe" },
-]
+// Dumb composable - handles UI state and interactions
+const {
+  message,
+  messageType,
+  showSuccess,
+  showError,
+  confirmUserDeletion,
+  formatUserDetails,
+  getLoadButtonText,
+  getDeleteButtonText
+} = useAdminUsersUI()
 
-const loadUsers = async () => {
-  loadingUsers.value = true
-  try {
-    const snap = await getDocs(collection(db, "users"))
-    users.value = snap.docs.map(doc => ({
-      uid: doc.id,
-      ...doc.data()
-    })).filter(user => user.username) // Only users with usernames
-    
-    message.value = `Loaded ${users.value.length} users successfully`
-    messageType.value = 'success'
-  } catch (error) {
-    console.error('Error loading users:', error)
-    message.value = 'Failed to load users'
-    messageType.value = 'error'
-  } finally {
-    loadingUsers.value = false
-    // Clear message after 3 seconds
-    setTimeout(() => {
-      message.value = ''
-    }, 3000)
+// Handle load users with UI feedback
+const handleLoadUsers = async () => {
+  const result = await loadUsers()
+  
+  if (result.success) {
+    showSuccess(result.message)
+  } else {
+    showError(result.message)
   }
 }
 
-const deleteUser = async (user) => {
-  if (!confirm(`Are you sure you want to permanently delete user "${user.username}"?\n\nThis will remove:\n- User profile\n- All game scores\n- All user data\n\nThis action cannot be undone!`)) {
+// Handle delete user with confirmation and UI feedback
+const handleDeleteUser = async (user) => {
+  if (!confirmUserDeletion(user.username)) {
     return
   }
 
-  deletingUsers.value.push(user.uid)
+  const result = await deleteUser(user)
   
-  try {
-    // Delete user document from Firestore
-    await deleteDoc(doc(db, 'users', user.uid))
-    
-    // Delete user's scores from all game leaderboards
-    const deletePromises = games.map(async (game) => {
-      try {
-        await deleteDoc(doc(db, `leaderboards/${game.name}/scores`, user.uid))
-      } catch (e) {
-        // Score might not exist for this game, continue
-        console.log(`No score found for ${user.username} in ${game.name}`)
-      }
-    })
-    
-    await Promise.all(deletePromises)
-    
-    // Remove user from local array
-    users.value = users.value.filter(u => u.uid !== user.uid)
-    
-    message.value = `User "${user.username}" has been permanently deleted`
-    messageType.value = 'success'
-    
-  } catch (error) {
-    console.error('Error deleting user:', error)
-    message.value = `Failed to delete user "${user.username}". Please try again.`
-    messageType.value = 'error'
-  } finally {
-    deletingUsers.value = deletingUsers.value.filter(id => id !== user.uid)
-    
-    // Clear message after 5 seconds
-    setTimeout(() => {
-      message.value = ''
-    }, 5000)
+  if (result.success) {
+    showSuccess(result.message, 5000) // Show success message for 5 seconds
+  } else {
+    showError(result.message)
   }
 }
 </script>
@@ -267,13 +227,11 @@ h1 {
   padding: 0.4rem 0.8rem;
   font-size: 0.8rem;
   font-weight: bold;
-  border-radius: 4px;
 }
 
 .message {
   padding: 1rem;
   margin-top: 1rem;
-  border-radius: 4px;
   font-weight: bold;
   text-align: center;
 }

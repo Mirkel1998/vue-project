@@ -7,10 +7,10 @@
 
     <div class="profile-header">
       <div class="profile-picture-container">
-        <div class="profile-picture" @click="showAvatarSelector = true" :style="getProfilePictureStyle()">
-          <img :src="getCurrentAvatar()" :alt="profileData.username" />
+        <div class="profile-picture" @click="openAvatarSelector" :style="getProfilePictureStyle()">
+          <img :src="getCurrentAvatar(profileData.avatar)" :alt="profileData.username" />
         </div>
-        <button @click="showAvatarSelector = true" class="change-avatar-btn">Change Avatar</button>
+        <button @click="openAvatarSelector" class="change-avatar-btn">Change Avatar</button>
       </div>
       <div class="profile-info" style="display: flex; align-items: center; gap: 1rem;">
         <h1 style="margin: 0;">
@@ -25,7 +25,7 @@
     </div>
 
     <!-- Avatar Selector Modal -->
-    <div v-if="showAvatarSelector" class="avatar-modal" @click="showAvatarSelector = false">
+    <div v-if="showAvatarSelector" class="avatar-modal" @click="closeAvatarSelector">
       <div class="avatar-modal-content" @click.stop>
         <h3>Choose Your Avatar</h3>
         <div class="avatar-grid">
@@ -34,7 +34,7 @@
             :key="avatar.id"
             class="avatar-option"
             :class="{ selected: profileData.avatar === avatar.id }"
-            @click="selectAvatar(avatar.id)"
+            @click="handleAvatarSelection(avatar.id)"
           >
             <div class="avatar-preview">
               <img :src="avatar.src" :alt="avatar.name" />
@@ -43,8 +43,8 @@
           </div>
         </div>
         <div class="avatar-modal-actions">
-          <button @click="showAvatarSelector = false" class="cancel-btn">Cancel</button>
-          <button @click="saveAvatarSelection" class="save-btn">Save</button>
+          <button @click="closeAvatarSelector" class="cancel-btn">Cancel</button>
+          <button @click="handleSaveAvatarSelection" class="save-btn">Save</button>
         </div>
       </div>
     </div>
@@ -114,11 +114,11 @@
           </div>
         </div>
         <div v-else class="no-games">
-          <p>No games added yet. <router-link to="/user-games" style="color: #6C619E;">Add some games!</router-link></p>
+          <p>No games added yet. <router-link to="/usergames" style="color: #6C619E;">Add some games!</router-link></p>
         </div>
       </div>
 
-      <button @click="saveProfile" class="save-profile-btn">
+      <button @click="handleSaveProfile" class="save-profile-btn">
         Save Profile
       </button>
     </div>
@@ -132,137 +132,67 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch, computed } from 'vue'
-import { useAuth } from '@/Composables/useAuth'
-import { useUserStore } from '@/piniaStores/users'
-import { db } from '@/Composables/useFirebase'
-import { setDoc, doc, getDoc } from 'firebase/firestore'
+import { onMounted, watch } from 'vue'
+import { useProfile } from '@/Composables/profile/useProfile'
+import { useProfileUI } from '@/Composables/profile/useProfileUI'
 
-const { currentUser } = useAuth()
-const userStore = useUserStore()
+// Smart composable - handles data and business logic
+const {
+  loading,
+  profileData,
+  userScores,
+  userGames,
+  loadProfileData,
+  saveProfile,
+  selectAvatar,
+  currentUser
+} = useProfile()
 
-const loading = ref(true)
-const showAvatarSelector = ref(false)
+// Dumb composable - handles UI state and interactions
+const {
+  showAvatarSelector,
+  showSnackbar,
+  snackbarMessage,
+  avatarOptions,
+  isAdmin,
+  showSnackbarMessage,
+  openAvatarSelector,
+  closeAvatarSelector,
+  saveAvatarSelection,
+  getCurrentAvatar,
+  getProfilePictureStyle
+} = useProfileUI()
 
-// Snackbar state
-const showSnackbar = ref(false)
-const snackbarMessage = ref('')
+// Handle avatar selection
+const handleAvatarSelection = (avatarId) => {
+  selectAvatar(avatarId)
+}
 
-const profileData = reactive({
-  username: '',
-  description: '',
-  location: '',
-  favoriteGenre: '',
-  avatar: 'avatar1', // default avatar
-  gamesPlayed: 0,
-  hoursPlayed: 0
+// Handle saving avatar selection
+const handleSaveAvatarSelection = () => {
+  saveAvatarSelection()
+  showSnackbarMessage('Avatar updated!')
+}
+
+// Handle profile save with UI feedback
+const handleSaveProfile = async () => {
+  const result = await saveProfile()
+  showSnackbarMessage(result.message)
+}
+
+// Load profile data on mount and user change
+onMounted(async () => {
+  const result = await loadProfileData()
+  if (!result.success) {
+    showSnackbarMessage(result.message)
+  }
 })
 
-// Avatar options - using public assets
-const avatarOptions = [
-  { id: 'avatar1', name: 'Avatar 1', src: '/avatars/avatar1.png' },
-  { id: 'avatar2', name: 'Avatar 2', src: '/avatars/avatar2.png' },
-  { id: 'avatar3', name: 'Avatar 3', src: '/avatars/avatar3.png' },
-  { id: 'avatar4', name: 'Avatar 4', src: '/avatars/avatar4.png' },
-  { id: 'avatar5', name: 'Avatar 5', src: '/avatars/avatar5.png' }
-]
-
-// List of your games
-const games = [
-  { name: "Pingpong", displayName: "Ping Pong" },
-  { name: "Snake", displayName: "Snake" },
-  { name: "FlappyBox", displayName: "Flappy Box" },
-  { name: "SpaceShooter", displayName: "Space Shooter" },
-  { name: "AvoidEnemy", displayName: "Avoid the Enemy" },
-  { name: "RockPaperScissors", displayName: "Rock Paper Scissors" },
-  { name: "QuizGame", displayName: "Star Wars Quiz" },
-  { name: "MazeEscape", displayName: "Maze Escape" },
-  { name: "GuessTheColor", displayName: "Guess the Color" },
-  { name: "TicTacToe", displayName: "Tic Tac Toe" },
-];
-
-const userScores = ref(games.map(g => ({ ...g, score: null })));
-const userGames = ref([]);
-
-// Avatar functions
-const getCurrentAvatar = () => {
-  const avatar = avatarOptions.find(a => a.id === (profileData.avatar || 'avatar1'))
-  return avatar?.src || avatarOptions[0].src
-}
-
-const getProfilePictureStyle = () => {
-  return {
-    width: '150px',
-    height: '150px',
-    border: '4px solid #6C619E',
-    cursor: 'pointer',
-    overflow: 'hidden',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
+watch(() => currentUser.value, async () => {
+  const result = await loadProfileData()
+  if (!result.success) {
+    showSnackbarMessage(result.message)
   }
-}
-
-const selectAvatar = (avatarId) => {
-  profileData.avatar = avatarId
-}
-
-const saveAvatarSelection = () => {
-  showAvatarSelector.value = false
-}
-
-const loadProfileData = async () => {
-  loading.value = true
-  if (currentUser.value) {
-    await userStore.fetchUserProfile(currentUser.value.uid)
-    if (userStore.profile) {
-      Object.assign(profileData, userStore.profile)
-      if (!profileData.gamesPlayed) profileData.gamesPlayed = 0
-      if (!profileData.hoursPlayed) profileData.hoursPlayed = 0
-      if (!profileData.avatar) profileData.avatar = 'avatar1'
-      
-      // Load user's games list
-      if (userStore.profile.games && Array.isArray(userStore.profile.games)) {
-        userGames.value = userStore.profile.games
-      }
-    }
-    // Fetch scores for each game
-    for (let i = 0; i < games.length; i++) {
-      const game = games[i];
-      const scoreDoc = await getDoc(doc(db, `leaderboards/${game.name}/scores`, currentUser.value.uid));
-      userScores.value[i].score = scoreDoc.exists() ? scoreDoc.data().score : null;
-    }
-  }
-  loading.value = false
-}
-
-onMounted(loadProfileData)
-watch(() => currentUser.value, loadProfileData)
-
-function showSnackbarMessage(message) {
-  snackbarMessage.value = message
-  showSnackbar.value = true
-  setTimeout(() => {
-    showSnackbar.value = false
-  }, 3000) // Hide after 3 seconds
-}
-
-const saveProfile = async () => {
-  if (!currentUser.value) return
-  try {
-    const userDoc = doc(db, 'users', currentUser.value.uid)
-    await setDoc(userDoc, { ...profileData }, { merge: true })
-    await userStore.fetchUserProfile(currentUser.value.uid)
-    showSnackbarMessage('Profile saved successfully!')
-  } catch (e) {
-    showSnackbarMessage('Failed to save profile: ' + e.message)
-  }
-}
-
-// Update the isAdmin computed property:
-const isAdmin = computed(() => {
-  const username = userStore.profile?.username
-  return username === 'Mikkel' || username === 'Mikkel (admin)'
 })
 </script>
 
