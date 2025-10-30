@@ -6,6 +6,8 @@ export function useLeaderboard(gameName) {
   const scores = ref([])
   let unsubscribe = null
 
+
+    // Submit or update a user's score
   async function submitScore(userId, username, score) {
     try {
       const docRef = doc(db, `leaderboards/${gameName}/scores`, userId)
