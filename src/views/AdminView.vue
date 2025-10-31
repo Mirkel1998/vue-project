@@ -61,7 +61,7 @@ const {
   isUserBeingDeleted
 } = useAdminUsers()
 
-// Dumb composable - handles UI state and interactions
+// Composable that - handles UI state and interactions
 const {
   message,
   messageType,

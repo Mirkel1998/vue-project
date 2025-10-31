@@ -86,7 +86,7 @@ const {
   getScoreDisplay
 } = useCommunityUsers()
 
-// Dumb composable - handles UI state and interactions
+// Composable that - handles UI state and interactions
 const {
   isAdmin,
   getToggleButtonText,
@@ -103,7 +103,7 @@ const handleToggleScores = async (user) => {
   
   if (!result.success) {
     console.error('Failed to load user scores:', result.message)
-    // Could add user notification here if needed
+   
   }
 }
 
@@ -113,7 +113,7 @@ onMounted(async () => {
   
   if (!result.success) {
     console.error('Failed to load users:', result.message)
-    // Could add user notification here if needed
+
   }
 })
 </script>

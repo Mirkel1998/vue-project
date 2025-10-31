@@ -14,13 +14,13 @@
 
 <style scoped>
 .landing {
-  height: auto; /* Changed from min-height: 100vh */
+  height: auto; 
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
   background: #C0C0C0;
-  padding: 4rem 1rem 3rem 1rem; /* Added bottom padding */
+  padding: 4rem 1rem 3rem 1rem; 
 }
 
 h1 {
@@ -37,7 +37,7 @@ h1 {
   max-width: 500px;
   width: 100%;
   box-shadow: 0 2px 4px rgba(0,0,0,0.07);
-  margin-bottom: 0; /* Removed bottom margin */
+  margin-bottom: 0; 
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -88,7 +88,7 @@ h1 {
   background-color: #218838;
 }
 
-/* Mobile Responsive Styles */
+
 @media (max-width: 768px) {
   .landing {
     padding: 2rem 1rem 2rem 1rem;
@@ -118,7 +118,7 @@ h1 {
   }
 }
 
-/* Small Mobile Styles */
+
 @media (max-width: 480px) {
   .landing {
     padding: 1.5rem 0.5rem 1.5rem 0.5rem;

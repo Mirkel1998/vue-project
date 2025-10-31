@@ -65,7 +65,7 @@ const handleSubmit = async () => {
 
   if (!identifier.includes('@')) {
     const usersRef = collection(db, 'users')
-    // query the lowercase index field
+    // query the lowercase index field - Makes sure that user can login with username or email regardless of case
     const q = query(usersRef, where('usernameLower', '==', identifier.toLowerCase()))
     const querySnapshot = await getDocs(q)
     if (!querySnapshot.empty) {

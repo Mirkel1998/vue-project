@@ -117,7 +117,7 @@ function showSnackbarMessage(message) {
   showSnackbar.value = true
   setTimeout(() => {
     showSnackbar.value = false
-  }, 3000) // Hide after 3 seconds
+  }, 3000) 
 }
 
 watch(userGames, async (games) => {
